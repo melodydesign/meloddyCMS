@@ -1,0 +1,14 @@
+{
+  "step": 1566,
+  "tool": "multi_replace_file_content",
+  "file": "style.css",
+  "target": "c:\\Users\\9\\Desktop\\meloddyCMS\\public\\css\\style.css",
+  "args": {
+    "Description": "\"Fix btn-outline hover text color and transfer-site block display\"",
+    "Instruction": "\"Fix btn-outline hover color, bump CSS/JS versions, unhide transfer block\"",
+    "ReplacementChunks": "[{\"AllowMultiple\":false,\"EndLine\":424,\"ReplacementContent\":\".btn-outline:hover {\\n    background: var(--bg-hover);\\n    border-color: var(--border);\\n    color: var(--text-main) !important;\\n    box-shadow: none;\\n}\",\"StartLine\":419,\"TargetContent\":\".btn-outline:hover {\\n    background: var(--bg-hover);\\n    border-color: var(--border);\\n    color: var(--text-main);\\n    box-shadow: none;\\n}\"}]",
+    "TargetFile": "\"c:\\\\Users\\\\9\\\\Desktop\\\\meloddyCMS\\\\public\\\\css\\\\style.css\"",
+    "toolAction": "\"Replacing file content\"",
+    "toolSummary": "\"Fix btn-outline hover in style.css\""
+  }
+}

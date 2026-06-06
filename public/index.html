@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>meloddyCMS — Платформа для управления сайтами</title>
+    
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/landing.css?v=1">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/favicon.svg" alt="meloddyCMS" style="width: 28px; height: 28px;">
+                meloddyCMS
+            </a>
+            <div class="nav-links">
+                <a href="#features">Преимущества</a>
+                <a href="#how-it-works">Как это работает</a>
+                <a href="/kb.html">База знаний</a>
+            </div>
+            <div class="nav-actions">
+                <a href="/login.html" class="btn btn-outline">Войти</a>
+                <a href="/login.html?mode=register" class="btn btn-primary">Начать работу</a>
+            </div>
+            <button class="nav-toggle" id="navToggle" aria-label="Открыть меню">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Subtle animated background spheres -->
+        <div class="hero-sphere hs-1"></div>
+        <div class="hero-sphere hs-2"></div>
+        
+        <div class="container fade-in-up" style="position: relative; z-index: 2;">
+            <div class="hero-subtitle">Всё необходимое в одном месте</div>
+            <h1>Создавайте и управляйте<br>сайтами <span class="text-gradient">быстрее</span></h1>
+            <p>Платформа meloddyCMS помогает собирать лендинги, управлять заявками и подключать ИИ для оптимизации рутины — в едином чистом интерфейсе.</p>
+            
+            <div class="hero-cta">
+                <a href="/login.html?mode=register" class="btn btn-accent">Начать бесплатно</a>
+                <a href="/login.html" class="btn btn-outline">Посмотреть демо</a>
+            </div>
+
+            <div class="hero-image-wrapper">
+                <img src="/img/photo-site-hero-new.jpg" alt="meloddyCMS Dashboard Preview">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="features-header fade-in-up">
+                <h2>Управляйте бизнесом, а не кодом</h2>
+                <p>Наша система берет на себя всю рутину. Создавайте сайты без разработчиков и отслеживайте все процессы в удобном интерфейсе.</p>
+            </div>
+
+            <div class="features-grid" id="bento-grid">
+                <!-- Row 1 -->
+                <div class="feature-card span-2 fade-in-up" style="border-color: rgba(37, 99, 235, 0.4); box-shadow: 0 8px 32px rgba(37, 99, 235, 0.1);">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    </div>
+                    <h3 style="color: var(--text-primary); font-weight: 700;">Визуальный редактор</h3>
+                    <p>Редактируйте готовые сайты прямо в браузере. Никакого программирования — просто кликайте на текст или картинку и меняйте контент на лету.</p>
+                </div>
+
+                <div class="feature-card fade-in-up" style="transition-delay: 0.1s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="15" x2="23" y2="15"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="15" x2="4" y2="15"></line></svg>
+                    </div>
+                    <h3>ИИ-кодогенераторы</h3>
+                    <p>Полная совместимость с визуальными средами разработки. Импорт сайтов без ручной пересборки.</p>
+                </div>
+
+                <div class="feature-card fade-in-up" style="transition-delay: 0.2s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    </div>
+                    <h3>Заявки</h3>
+                    <p>Встроенная CRM и тикеты.</p>
+                </div>
+
+                <div class="feature-card fade-in-up" style="transition-delay: 0.3s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                    </div>
+                    <h3>Дашборд</h3>
+                    <p>Всё под рукой в чистом дизайне.</p>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="feature-card fade-in-up" style="transition-delay: 0.1s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    </div>
+                    <h3>Интеграции</h3>
+                    <p>Подключайте популярные CRM, аналитику и сервисы оплаты по API за пару кликов.</p>
+                </div>
+
+                <div class="feature-card fade-in-up" style="transition-delay: 0.2s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+                    </div>
+                    <h3>Детальная аналитика</h3>
+                    <p>Отслеживайте просмотры и визиты в реальном времени.</p>
+                </div>
+
+                <div class="feature-card fade-in-up" style="transition-delay: 0.3s;">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    </div>
+                    <h3>Telegram-Бот</h3>
+                    <p>Отслеживайте заявки, статистику и всё, что происходит на сайте, не заходя в панель управления.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="benefits" class="benefits-section">
+        <div class="container">
+            <div class="features-header fade-in-up">
+                <h2>Выгода для всех</h2>
+                <p>Мы создали платформу, которая решает боли и клиентов, и разработчиков.</p>
+            </div>
+            
+            <!-- Advanced IDE-like Interface -->
+            <div class="monster-ide fade-in-up">
+                <!-- Mac-like Header -->
+                <div class="ide-header">
+                    <div class="ide-controls">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="ide-tabs">
+                        <button class="ide-tab active" data-target="business">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            для владельца сайта
+                        </button>
+                        <button class="ide-tab" data-target="developer">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                            для разработчика
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ide-body">
+                    <!-- Business View -->
+                    <div class="ide-view active" id="view-business">
+                        <div class="ide-sidebar">
+                            <div class="ide-nav-item active" data-visual="v-control">
+                                <h4>Полный контроль</h4>
+                                <p>Управление сайтом без программиста</p>
+                            </div>
+                            <div class="ide-nav-item" data-visual="v-economy">
+                                <h4>Снижение расходов</h4>
+                                <p>Никаких плат за правки</p>
+                            </div>
+                            <div class="ide-nav-item" data-visual="v-allinone">
+                                <h4>Всё в одном</h4>
+                                <p>Заявки и сайт в едином окне</p>
+                            </div>
+                            <div class="ide-nav-item" data-visual="v-freedom">
+                                <h4>Без ограничений</h4>
+                                <p>Ваш сайт принадлежит вам</p>
+                            </div>
+                        </div>
+                        <div class="ide-canvas">
+                            <div class="ide-visual active" id="v-control">
+                                <div class="complex-cms-ui">
+                                    <div class="cc-sidebar">
+                                        <div class="cc-menu-item active"></div>
+                                        <div class="cc-menu-item"></div>
+                                        <div class="cc-menu-item"></div>
+                                    </div>
+                                    <div class="cc-main">
+                                        <div class="cc-block highlight">
+                                            <div class="cc-text large"></div>
+                                            <div class="cc-text medium"></div>
+                                        </div>
+                                        <div class="cc-block">
+                                            <div class="cc-img"></div>
+                                        </div>
+                                    </div>
+                                    <div class="cc-cursor">
+                                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.94c.45 0 .67-.54.35-.85L6.35 2.85a.5.5 0 0 0-.85.35Z"/></svg>
+                                        <div class="cc-tag">Вы редактируете</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ide-visual" id="v-economy">
+                                <div class="complex-chart">
+                                    <div class="ch-line"></div>
+                                    <div class="ch-bars">
+                                        <div class="ch-bar" style="height: 30%"><span></span></div>
+                                        <div class="ch-bar" style="height: 50%"><span></span></div>
+                                        <div class="ch-bar" style="height: 20%"><span></span></div>
+                                        <div class="ch-bar active" style="height: 80%"><span></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ide-visual" id="v-allinone">
+                                <div class="complex-dashboard">
+                                    <div class="cd-card"></div>
+                                    <div class="cd-card"></div>
+                                    <div class="cd-card wide"></div>
+                                </div>
+                            </div>
+                            <div class="ide-visual" id="v-freedom">
+                                <div class="complex-abstract">
+                                    <div class="ca-orb"></div>
+                                    <div class="ca-ring"></div>
+                                    <div class="ca-ring delay"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Developer View -->
+                    <div class="ide-view dev-theme" id="view-developer" style="display:none; opacity:0;">
+                        <div class="ide-sidebar">
+                            <div class="ide-nav-item active" data-visual="v-code">
+                                <h4>Чистый код</h4>
+                                <p>Любая HTML/CSS верстка</p>
+                            </div>
+                            <div class="ide-nav-item" data-visual="v-speed">
+                                <h4>Быстрый запуск</h4>
+                                <p>Посадка сайта за минуты</p>
+                            </div>
+                            <div class="ide-nav-item" data-visual="v-money">
+                                <h4>Доп. заработок</h4>
+                                <p>Плата за поддержку клиентов</p>
+                            </div>
+                            <div class="ide-nav-item" data-visual="v-auto">
+                                <h4>Автоматизация</h4>
+                                <p>Сервера и БД из коробки</p>
+                            </div>
+                        </div>
+                        <div class="ide-canvas">
+                            <div class="ide-visual active" id="v-code">
+                                <div class="complex-code">
+                                    <div class="code-line"><span class="c-number">1</span> <span class="c-keyword">import</span> { meloddyCMS } <span class="c-keyword">from</span> <span class="c-string">'@meloddy/core'</span>;</div>
+                                    <div class="code-line"><span class="c-number">2</span></div>
+                                    <div class="code-line"><span class="c-number">3</span> <span class="c-keyword">const</span> <span class="c-func">App</span> = () <span class="c-keyword">=></span> {</div>
+                                    <div class="code-line indent"><span class="c-number">4</span> <span class="c-comment">// No complex configs needed</span></div>
+                                    <div class="code-line indent"><span class="c-number">5</span> <span class="c-func">meloddyCMS</span>.<span class="c-func">init</span>({</div>
+                                    <div class="code-line indent-2"><span class="c-number">6</span> <span class="c-var">target</span>: <span class="c-string">'#root'</span>,</div>
+                                    <div class="code-line indent-2"><span class="c-number">7</span> <span class="c-var">mode</span>: <span class="c-string">'headless'</span></div>
+                                    <div class="code-line indent"><span class="c-number">8</span> });</div>
+                                    <div class="code-line"><span class="c-number">9</span> };</div>
+                                    <div class="code-typing-cursor"></div>
+                                </div>
+                            </div>
+                            <div class="ide-visual" id="v-speed">
+                                <div class="complex-terminal">
+                                    <div class="t-line"><span class="t-path">~/project</span> $ npm run deploy</div>
+                                    <div class="t-line t-dim">[1/3] Building project...</div>
+                                    <div class="t-line t-dim">[2/3] Uploading assets...</div>
+                                    <div class="t-line t-success">✓ Published in 1.2s to production</div>
+                                </div>
+                            </div>
+                            <div class="ide-visual" id="v-money">
+                                <div class="complex-income">
+                                    <div class="i-card">
+                                        <div class="i-amount">+$500</div>
+                                        <div class="i-label">Monthly Retainer</div>
+                                    </div>
+                                    <div class="i-card">
+                                        <div class="i-amount">+$300</div>
+                                        <div class="i-label">Hosting Markup</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ide-visual" id="v-auto">
+                                <div class="complex-server">
+                                    <div class="s-layer"></div>
+                                    <div class="s-layer active"></div>
+                                    <div class="s-layer"></div>
+                                    <div class="s-data-flow"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile-specific Benefits List -->
+            <div class="mobile-benefits-container">
+                <div class="mobile-benefits-group">
+                    <h3>Для владельца сайта</h3>
+                    <div class="mobile-benefit-card">
+                        <h4>Полный контроль</h4>
+                        <p>Управляйте контентом, текстами и изображениями напрямую через визуальный редактор без привлечения программистов.</p>
+                    </div>
+                    <div class="mobile-benefit-card">
+                        <h4>Снижение расходов</h4>
+                        <p>Больше никаких затрат на поддержку разработчикам за мелкие текстовые правки и смену баннеров.</p>
+                    </div>
+                    <div class="mobile-benefit-card">
+                        <h4>Всё в одном</h4>
+                        <p>Встроенная простая CRM, система лидов и заявок с сайта — всё собирается в едином удобном интерфейсе.</p>
+                    </div>
+                    <div class="mobile-benefit-card">
+                        <h4>Без ограничений</h4>
+                        <p>Ваш сайт полностью принадлежит вам, код не заблокирован внутри облачных конструкторов.</p>
+                    </div>
+                </div>
+                
+                <div class="mobile-benefits-group">
+                    <h3>Для разработчика</h3>
+                    <div class="mobile-benefit-card dev-card">
+                        <h4>Чистый код</h4>
+                        <p>Используйте абсолютно любую готовую HTML/CSS верстку без изучения шаблонизаторов и ограничений.</p>
+                    </div>
+                    <div class="mobile-benefit-card dev-card">
+                        <h4>Быстрый запуск</h4>
+                        <p>Посадка сайта на CMS занимает считанные минуты с помощью простых data-атрибутов разметки.</p>
+                    </div>
+                    <div class="mobile-benefit-card dev-card">
+                        <h4>Доп. заработок</h4>
+                        <p>Передавайте клиентам удобную и понятную панель управления, зарабатывая на хостинге и поддержке.</p>
+                    </div>
+                    <div class="mobile-benefit-card dev-card">
+                        <h4>Автоматизация</h4>
+                        <p>Все базы данных и сервера разворачиваются автоматически. Вам не нужно настраивать инфраструктуру.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Section -->
+    <section id="security" class="security-section">
+        <div class="container">
+            <div class="features-header fade-in-up">
+                <h2>100% Российская разработка</h2>
+                <p>Мы независимы от западных санкций и блокировок. Ваши данные всегда в безопасности и под надежной защитой.</p>
+            </div>
+            
+            <div class="security-layout fade-in-up">
+                <!-- Left: Big Visual Card -->
+                <div class="security-visual-card">
+                    <div class="shield-container">
+                        <svg class="main-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                </div>
+                
+                <!-- Right: Steps Cards -->
+                <div class="security-steps">
+                    <div class="step-card">
+                        <div class="step-icon">1</div>
+                        <div class="step-content">
+                            <strong>Сервера в РФ</strong>
+                            <span>Полное соответствие ФЗ-152 о персональных данных.</span>
+                        </div>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-icon">2</div>
+                        <div class="step-content">
+                            <strong>Аптайм 99.9%</strong>
+                            <span>Гарантированная доступность проектов круглый год.</span>
+                        </div>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-icon">3</div>
+                        <div class="step-content">
+                            <strong>Надежная защита</strong>
+                            <span>Прямой контакт разработчика для любых вопросов.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing-section">
+        <div class="container">
+            <div class="features-header fade-in-up">
+                <h2>Эксклюзивные условия</h2>
+                <p>Успейте присоединиться к платформе, пока мы находимся в стадии активного развития.</p>
+            </div>
+            
+            <div class="pricing-card fade-in-up">
+                <div class="pricing-left">
+                    <div class="pricing-badge">Специальное предложение</div>
+                    <h3>Тариф Beta</h3>
+                    <div class="pricing-price">Бесплатно</div>
+                    <span class="pricing-date">до 4 октября 2026</span>
+                    <p class="pricing-desc">Полный доступ ко всем возможностям платформы без ограничений и скрытых платежей.</p>
+                    <a href="/login.html?mode=register" class="btn btn-primary">Создать аккаунт</a>
+                </div>
+                <div class="pricing-right">
+                    <ul class="pricing-features">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Безлимитное количество сайтов</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Визуальный редактор страниц</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Telegram-бот для уведомлений</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Встроенная CRM с канбан-доской</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Привязка собственного домена</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Приоритетная поддержка</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+        <div class="container">
+            <div class="features-header fade-in-up">
+                <h2>Частые вопросы</h2>
+            </div>
+            
+            <div class="faq-list fade-in-up">
+                <div class="faq-item">
+                    <button class="faq-question">Нужно ли уметь программировать? <span class="faq-icon">+</span></button>
+                    <div class="faq-answer"><p>Нет, весь процесс редактирования сайтов происходит в интуитивно понятном визуальном редакторе. Вы просто собираете сайт из готовых блоков, как конструктор.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Смогу ли я подключить свой домен? <span class="faq-icon">+</span></button>
+                    <div class="faq-answer"><p>Да, вы можете легко привязать свой собственный домен к любому созданному сайту прямо из панели управления.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Как работает Telegram-бот? <span class="faq-icon">+</span></button>
+                    <div class="faq-answer"><p>Наш бот уведомляет вас о новых заявках в ту же секунду, как клиент заполнил форму. Также вы можете получать краткую сводку по статистике за день.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Что будет после окончания тарифа Beta? <span class="faq-icon">+</span></button>
+                    <div class="faq-answer"><p>Для первых пользователей мы подготовим специальные лояльные условия и огромные скидки на платные тарифы.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Можно ли перенести существующий сайт? <span class="faq-icon">+</span></button>
+                    <div class="faq-answer"><p>Да, любую готовую HTML/CSS верстку можно вставить в нашу платформу, и она автоматически станет редактируемой в визуальном интерфейсе.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Как работает встроенная CRM? <span class="faq-icon">+</span></button>
+                    <div class="faq-answer"><p>Все заявки и сообщения с сайта моментально попадают в удобную канбан-доску в панели управления, а также дублируются вам в Telegram.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Есть ли ограничения по количеству страниц? <span class="faq-icon">+</span></button>
+                    <div class="faq-answer"><p>Нет, вы можете создавать неограниченное количество страниц и разделов для каждого из ваших проектов без скрытых доплат.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Какие интеграции вы поддерживаете? <span class="faq-icon">+</span></button>
+                    <div class="faq-answer"><p>Доступны базовые интеграции по API и Webhooks. Вы также можете в один клик подключать Яндекс Метрику, Google Analytics и любые пользовательские скрипты.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Где хранятся мои данные? <span class="faq-icon">+</span></button>
+                    <div class="faq-answer"><p>Все наши серверы физически расположены на территории РФ, что гарантирует высокую скорость работы и полное соответствие закону ФЗ-152.</p></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Есть ли партнерка для разработчиков? <span class="faq-icon">+</span></button>
+                    <div class="faq-answer"><p>Конечно! Фрилансеры и веб-студии могут управлять всеми клиентскими сайтами из единого аккаунта, получая специальные бонусы и приоритетную поддержку.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Form Section -->
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <div class="contact-layout fade-in-up">
+                <div class="contact-info-clean">
+                    <h2>Остались вопросы?</h2>
+                    <p>Напишите нам, и мы с радостью ответим на всё, что вас интересует, поможем с настройкой или просто обсудим ваши идеи.</p>
+                    <div style="margin-top: 32px;">
+                        <a href="https://t.me/codeContext" target="_blank" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.75rem; border-color: rgba(0,0,0,0.1); color: var(--text-primary); background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style="color: #0088cc;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                            Контакт разработчика
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="contact-ui-card">
+                    <div class="ui-header">
+                        <div class="ui-dots"><span></span><span></span><span></span></div>
+                        <div class="ui-title">Новое сообщение</div>
+                    </div>
+                    <div class="ui-body">
+                        <form class="contact-form" id="contact-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Ваше имя</label>
+                                    <input type="text" placeholder="Иван Иванов" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" placeholder="hello@example.com" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Сообщение</label>
+                                <textarea placeholder="Опишите ваш вопрос или предложение..." rows="4" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="contact-submit-btn">Отправить сообщение</button>
+                            
+                            <div class="form-success-msg" id="form-success-msg">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                Сообщение отправлено!
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo" style="margin-bottom: 16px;">
+                        <img src="/favicon.svg" alt="meloddyCMS" style="width: 28px; height: 28px;">
+                        meloddyCMS
+                    </a>
+                    <p class="footer-description">Современная CMS для управления сайтами без программирования прямо поверх вашей верстки.</p>
+                    <div class="footer-socials">
+                        <a href="https://t.me/codeContext" target="_blank" aria-label="Telegram" class="social-link">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4>Платформа</h4>
+                    <a href="#features">Преимущества</a>
+                    <a href="#benefits">Выгода</a>
+                    <a href="#pricing">Тарифы</a>
+                    <a href="#faq">FAQ</a>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4>База знаний</h4>
+                    <a href="/kb.html">Все статьи</a>
+                    <a href="/kb.html#client-start">Для клиентов</a>
+                    <a href="/kb.html#dev-integration">Для разработчиков</a>
+                    <a href="/kb.html#dev-forms">Подключение форм</a>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4>Документы</h4>
+                    <a href="/privacy.html">Конфиденциальность</a>
+                    <a href="/terms.html">Соглашение</a>
+                    <a href="/offer.html">Оферта</a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 meloddyCMS. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navbar Scroll Effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Reveal Animations on Scroll
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-up').forEach(element => {
+            observer.observe(element);
+        });
+
+        // Initial check for elements already in viewport
+        setTimeout(() => {
+            document.querySelectorAll('.fade-in-up').forEach(element => {
+                const rect = element.getBoundingClientRect();
+                if (rect.top < window.innerHeight) {
+                    element.classList.add('visible');
+                }
+            });
+        }, 100);
+
+        // Apple-style 3D Scroll Animation for Hero Image
+        const heroImage = document.querySelector('.hero-image-wrapper');
+        
+        let ticking = false;
+
+        window.addEventListener('scroll', () => {
+            if (!ticking && heroImage) {
+                window.requestAnimationFrame(() => {
+                    const scrollY = window.scrollY;
+                    // animate over 800px of scroll
+                    const maxScroll = Math.min(window.innerHeight, 800); 
+                    
+                    if (scrollY <= maxScroll) {
+                        // easing progress
+                        let progress = scrollY / maxScroll;
+                        // easeOutQuad like easing for smoother feel
+                        progress = progress * (2 - progress);
+                        
+                        // rotateX: 25deg -> 0deg
+                        const rotateX = Math.max(0, 25 - (progress * 25));
+                        
+                        // scale: 0.9 -> 1.05
+                        const scale = 0.9 + (progress * 0.15);
+                        
+                        // translateY: 0 -> -200px (flies up)
+                        const translateY = -(progress * 200);
+                        
+                        heroImage.style.transform = `rotateX(${rotateX}deg) scale(${scale}) translateY(${translateY}px)`;
+                    } else {
+                        // hold final state if scrolled past
+                        heroImage.style.transform = `rotateX(0deg) scale(1.05) translateY(-200px)`;
+                    }
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+        // Bento Grid Hover Glow Effect
+        document.getElementById('bento-grid').addEventListener('mousemove', e => {
+            for(const card of document.querySelectorAll('.feature-card')) {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            }
+        });
+
+        // FAQ Accordion
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            question.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                
+                // Close all others
+                faqItems.forEach(otherItem => {
+                    otherItem.classList.remove('active');
+                    const otherAnswer = otherItem.querySelector('.faq-answer');
+                    otherAnswer.style.maxHeight = null;
+                });
+
+                if (!isActive) {
+                    item.classList.add('active');
+                    const answer = item.querySelector('.faq-answer');
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                }
+            });
+        });
+
+        // Contact Form Fake Submit
+        const contactForm = document.getElementById('contact-form');
+        if (contactForm) {
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('contact-submit-btn');
+                const successMsg = document.getElementById('form-success-msg');
+                
+                btn.innerHTML = '<span style="display:inline-block; animation: floatImage 1s infinite">...</span> Отправка';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    contactForm.reset();
+                    btn.innerHTML = 'Отправить сообщение';
+                    btn.disabled = false;
+                    successMsg.classList.add('show');
+                    
+                    setTimeout(() => {
+                        successMsg.classList.remove('show');
+                    }, 5000);
+                }, 1500);
+            });
+        }
+
+        // IDE Interface Logic
+        const ideTabs = document.querySelectorAll('.ide-tab');
+        ideTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                ideTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                document.querySelectorAll('.ide-view').forEach(v => {
+                    v.style.opacity = '0';
+                    setTimeout(() => {
+                        v.style.display = 'none';
+                        v.classList.remove('active');
+                    }, 200);
+                });
+
+                setTimeout(() => {
+                    const activeView = document.getElementById('view-' + tab.dataset.target);
+                    activeView.style.display = 'flex';
+                    void activeView.offsetWidth;
+                    activeView.style.opacity = '1';
+                    activeView.classList.add('active');
+                }, 250);
+            });
+        });
+
+        const navItems = document.querySelectorAll('.ide-nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // Find parent view
+                const view = item.closest('.ide-view');
+                // Remove active from all nav items in this view
+                view.querySelectorAll('.ide-nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                // Hide all visuals in this view
+                view.querySelectorAll('.ide-visual').forEach(v => v.classList.remove('active'));
+                
+                // Show target visual
+                const targetVisual = view.querySelector('#' + item.dataset.visual);
+                if (targetVisual) {
+                    targetVisual.classList.add('active');
+                }
+            });
+        });
+
+        // Mobile Menu Toggle Logic
+        const navToggle = document.getElementById('navToggle');
+        const navbarNode = document.getElementById('navbar');
+        if (navToggle && navbarNode) {
+            navToggle.addEventListener('click', () => {
+                navbarNode.classList.toggle('nav-open');
+                document.body.classList.toggle('nav-menu-active');
+            });
+            
+            // Close mobile menu when links are clicked
+            document.querySelectorAll('.nav-links a, .nav-actions a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navbarNode.classList.remove('nav-open');
+                    document.body.classList.remove('nav-menu-active');
+                });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Визуальный редактор</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css?v=10">
+    <script src="/js/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; background: var(--bg-body); }
+        .toolbar { padding: 12px 24px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); z-index: 100;}
+        iframe { width: 100%; flex: 1; border: none; background: #fff; }
+        .save-indicator { font-size: 0.875rem; color: var(--text-muted); margin-right: 15px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        .custom-select-wrapper { display: inline-block; position: relative; }
+        .custom-select-trigger { background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.875rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-width: 120px; transition: border-color 0.2s, box-shadow 0.2s; position: relative; }
+        .custom-select-trigger:after { content: ''; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid var(--text-muted); position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+        .custom-select-trigger:hover { border-color: var(--primary); }
+        .custom-select-options { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); margin-top: 4px; max-height: 200px; overflow-y: auto; width: 100%; position: absolute; top: 100%; left: 0; z-index: 10000; display: none; }
+        .custom-select-options.show { display: block; }
+        .custom-select-option { padding: 0.5rem 0.75rem; font-size: 0.875rem; color: var(--text-main); cursor: pointer; transition: background 0.2s; }
+        .custom-select-option:hover { background: var(--bg-hover); }
+        .custom-select-option.selected { background: var(--bg-active); color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div style="font-weight: 500; font-size: 0.9rem;"><strong style="font-weight: 700;">meloddyCMS</strong> <span style="color: var(--text-muted)">— Визуальный редактор</span></div>
+        
+        <!-- Resolution Controls -->
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div class="segmented-tabs">
+                <button class="segmented-tab active res-btn" data-width="100%" title="Десктоп" style="padding: 6px 14px; font-size: 0.8rem;">Монитор</button>
+                <button class="segmented-tab res-btn" data-width="768px" title="Планшет" style="padding: 6px 14px; font-size: 0.8rem;">Планшет</button>
+                <button class="segmented-tab res-btn" data-width="375px" title="Мобилка" style="padding: 6px 14px; font-size: 0.8rem;">Телефон</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Ширина:</span>
+                <input type="range" id="resSlider" min="320" max="1440" value="1440" style="width: 100px; cursor: pointer; accent-color: var(--primary);">
+                <span id="resValue" style="font-size: 0.75rem; color: var(--text-muted); min-width: 40px;">100%</span>
+            </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="save-indicator" id="saveIndicator">Нет изменений</span>
+            <select id="pageSelector" style="padding: 0.5rem 2.2rem 0.5rem 0.75rem; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.875rem; cursor: pointer; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 12px;">
+                <!-- Pages loaded via JS -->
+            </select>
+            <a href="/dashboard.html" class="btn btn-outline">В панель</a>
+            <button id="saveBtn" class="btn">Сохранить</button>
+            <button id="publishBtn" class="btn">Опубликовать</button>
+            <button id="qrBtn" class="btn btn-outline" title="Превью на телефоне">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="7" y="7" width="3" height="3"></rect><rect x="14" y="7" width="3" height="3"></rect><rect x="7" y="14" width="3" height="3"></rect><rect x="14" y="14" width="3" height="3"></rect></svg>
+            </button>
+            <button id="projectSettingsBtn" class="btn btn-outline" title="Настройки проекта">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+            <button id="seoBtn" class="btn btn-outline">SEO</button>
+        </div>
+    </div>
+
+    <!-- Project Settings Modal -->
+    <div id="projectSettingsModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 20000; backdrop-filter: blur(5px);">
+        <div style="background: var(--bg-card); padding: 30px; border-radius: var(--radius-lg); width: 800px; max-width: 95%; height: 600px; max-height: 90vh; border: 1px solid var(--border); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Настройки проекта</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-outline proj-tab active" data-tab="css">Global CSS</button>
+                    <button class="btn btn-outline proj-tab" data-tab="palette">Палитра</button>
+                    <button class="btn btn-outline proj-tab" data-tab="fonts">Шрифты</button>
+                </div>
+            </div>
+
+            <!-- CSS Tab -->
+            <div id="projTabCss" class="proj-tab-content" style="flex: 1; display: flex; flex-direction: column;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Редактирование style.css всего проекта. Изменения применятся ко всем страницам.</p>
+                <textarea id="globalCssEditor" style="flex: 1; width: 100%; padding: 15px; background: #1e1e1e; color: #d4d4d4; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; line-height: 1.5; resize: none; outline: none;"></textarea>
+            </div>
+
+            <!-- Palette Tab -->
+            <div id="projTabPalette" class="proj-tab-content" style="display: none;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">Задайте основные цвета проекта для быстрого доступа.</p>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;" id="paletteContainer">
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Основной (Primary)</label>
+                        <input type="color" class="palette-input" data-var="primary" style="width: 100%; height: 40px; border: none; cursor: pointer;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Акцент (Accent)</label>
+                        <input type="color" class="palette-input" data-var="accent" style="width: 100%; height: 40px; border: none; cursor: pointer;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Текст (Main Text)</label>
+                        <input type="color" class="palette-input" data-var="text" style="width: 100%; height: 40px; border: none; cursor: pointer;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Фон (Background)</label>
+                        <input type="color" class="palette-input" data-var="bg" style="width: 100%; height: 40px; border: none; cursor: pointer;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fonts Tab -->
+            <div id="projTabFonts" class="proj-tab-content" style="display: none;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">Выберите шрифты из Google Fonts.</p>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Шрифт заголовков</label>
+                    <select id="headerFontSelect" style="width: 100%; padding: 10px; background: var(--bg-body); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main);">
+                        <option value="Inter">Inter</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="Oswald">Oswald</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Lora">Lora</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Шрифт основного текста</label>
+                    <select id="bodyFontSelect" style="width: 100%; padding: 10px; background: var(--bg-body); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main);">
+                        <option value="Inter">Inter</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Open Sans">Open Sans</option>
+                        <option value="Lato">Lato</option>
+                        <option value="PT Sans">PT Sans</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <button id="closeProjModal" class="btn btn-outline">Отмена</button>
+                <button id="saveProjModal" class="btn" style="min-width: 120px;">Применить ко всему проекту</button>
+            </div>
+        </div>
+    </div>
+    <div class="editor-container" style="display: flex; flex: 1; overflow: hidden;">
+        <!-- Left Sidebar: Layers -->
+        <div id="layersSidebar" style="width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px;">
+            <div style="padding: 0 8px 12px 8px; font-weight: 600; border-bottom: 1px solid var(--border); font-size: 0.875rem; color: var(--text-main);">
+                <span>Слои</span>
+            </div>
+            <div id="layersContainer" style="flex: 1; overflow-y: auto; padding: 12px 4px 0 4px;">
+                <div style="color: var(--text-muted); font-size: 0.8rem;">Загрузка...</div>
+            </div>
+        </div>
+        
+        <!-- Center: Preview -->
+        <div id="previewContainer" style="flex: 1; display: flex; justify-content: center; background: var(--bg-body); padding: 24px; overflow: auto; transition: background 0.3s;">
+            <div id="previewWrapper" style="width: 100%; height: 100%; background: #fff; transition: all 0.3s ease; position: relative; border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--border);">
+                <iframe id="preview" src="about:blank" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+        
+        <!-- Right Sidebar: Styles -->
+        <div id="stylesSidebar" style="width: 260px; background: var(--bg-card); border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px;">
+            <div style="padding: 0 8px 12px 8px; font-weight: 600; border-bottom: 1px solid var(--border); font-size: 0.875rem; color: var(--text-main);">Стили</div>
+            <div id="stylesContainer" style="flex: 1; overflow-y: auto; padding: 12px 4px 0 4px;">
+                <div style="color: var(--text-muted); font-size: 0.875rem;">Выберите элемент для редактирования</div>
+            </div>
+        </div>
+    </div>
+    <div id="linkEditorPopup" style="position: absolute; display: none; background: var(--bg-card); border: 1px solid var(--border); padding: 12px; border-radius: var(--radius-sm); box-shadow: var(--shadow-md); z-index: 10000; gap: 8px; flex-direction: column; width: 200px;">
+        <label style="font-size: 0.75rem; color: var(--text-muted);">Текст</label>
+        <input type="text" id="linkText" style="padding: 0.3rem;">
+        <label style="font-size: 0.75rem; color: var(--text-muted);">Ссылка (URL)</label>
+        <input type="text" id="linkHref" style="padding: 0.3rem;">
+        <div style="display: flex; gap: 5px; justify-content: flex-end; margin-top: 5px;">
+            <button id="closeLinkBtn" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Отмена</button>
+            <button id="saveLinkBtn" class="btn" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">ОК</button>
+        </div>
+    </div>
+
+    <!-- SEO Modal -->
+    <div id="seoModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 20000; backdrop-filter: blur(5px);">
+        <div style="background: var(--bg-card); padding: 30px; border-radius: var(--radius-lg); width: 500px; max-width: 95%; border: 1px solid var(--border); box-shadow: var(--shadow-lg);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">SEO & Аналитика</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-outline seo-tab active" data-tab="meta" style="padding: 4px 12px; font-size: 0.8rem;">Мета</button>
+                    <button class="btn btn-outline seo-tab" data-tab="og" style="padding: 4px 12px; font-size: 0.8rem;">Social (OG)</button>
+                    <button class="btn btn-outline seo-tab" data-tab="audit" id="startAuditBtn" style="padding: 4px 12px; font-size: 0.8rem; background: var(--bg-active); color: var(--primary);">Аудит</button>
+                </div>
+            </div>
+
+            <!-- Meta Tab -->
+            <div id="seoTabMeta" class="seo-tab-content">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Заголовок страницы (Title)</label>
+                    <input type="text" id="seoTitleInput" placeholder="До 60 символов" style="width: 100%; padding: 0.6rem; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Описание (Description)</label>
+                    <textarea id="seoDescInput" placeholder="До 160 символов" style="width: 100%; padding: 0.6rem; height: 80px; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm); resize: none;"></textarea>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Ключевые слова (Keywords)</label>
+                    <input type="text" id="seoKeywordsInput" placeholder="через запятую" style="width: 100%; padding: 0.6rem; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                </div>
+            </div>
+
+            <!-- Open Graph Tab -->
+            <div id="seoTabOg" class="seo-tab-content" style="display: none;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">OG Title</label>
+                    <input type="text" id="ogTitleInput" style="width: 100%; padding: 0.6rem; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">OG Description</label>
+                    <textarea id="ogDescInput" style="width: 100%; padding: 0.6rem; height: 60px; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm); resize: none;"></textarea>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">OG Image URL</label>
+                    <input type="text" id="ogImageInput" placeholder="https://..." style="width: 100%; padding: 0.6rem; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                </div>
+            </div>
+
+            <!-- Audit Tab -->
+            <div id="seoTabAudit" class="seo-tab-content" style="display: none;">
+                <div id="auditResults" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px;">Нажмите кнопку "Аудит" для проверки страницы</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <button id="closeSeoModal" class="btn btn-outline">Отмена</button>
+                <button id="saveSeoModal" class="btn" style="min-width: 120px;">Применить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Editor Modal -->
+    <div id="imageEditorModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 20000; backdrop-filter: blur(3px);">
+        <div style="background: var(--bg-card); padding: 25px; border-radius: var(--radius-lg); width: 450px; border: 1px solid var(--border); box-shadow: var(--shadow-lg);">
+            <h3 style="margin-top: 0; margin-bottom: 20px;">Настройки изображения</h3>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Путь к файлу (URL)</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="imageSrcInput" style="flex: 1; padding: 0.6rem; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                    <button id="uploadImgBtn" class="btn btn-outline" style="padding: 0.5rem;" title="Загрузить новый">Заменить</button>
+                    <button id="selectImgBtn" class="btn btn-outline" style="padding: 0.5rem;" title="Выбрать из галереи">Галерея</button>
+                </div>
+            </div>
+            
+            <div id="fileListContainer" style="margin-bottom: 15px; max-height: 200px; overflow-y: auto; display: none; border: 1px solid var(--border); border-radius: var(--radius-sm);"></div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Текст для роботов (ALT)</label>
+                <input type="text" id="imageAltInput" placeholder="Опишите, что на картинке" style="width: 100%; padding: 0.6rem; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Важно для SEO и доступности (скринридеров).</p>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <button id="closeImageModal" class="btn btn-outline">Отмена</button>
+                <button id="saveImageModal" class="btn">Применить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Preview Modal -->
+    <div id="qrModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 30000; backdrop-filter: blur(5px);">
+        <div style="background: var(--bg-card); border-radius: var(--radius-lg); width: 400px; padding: 30px; border: 1px solid var(--border); text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+            <h3 style="margin-top: 0; margin-bottom: 10px;">Превью на телефоне</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Отсканируйте QR-код, чтобы открыть этот сайт на мобильном устройстве в той же Wi-Fi сети.</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 12px; display: inline-block; margin-bottom: 20px;">
+                <canvas id="qrCanvas" style="display: block;"></canvas>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <input id="qrUrlDisplay" type="text" readonly style="width: 100%; padding: 8px; background: var(--bg-body); border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+            </div>
+            
+            <button id="closeQrModal" class="btn" style="width: 100%;">Понятно</button>
+        </div>
+    </div>
+
+
+
+    <script src="/js/toast.js"></script>
+    <script src="/js/visual-editor.js"></script>
+</body>
+</html>

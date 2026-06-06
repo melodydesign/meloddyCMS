@@ -1,0 +1,12 @@
+<svg width="180" height="40" viewBox="0 0 180 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 20L20 5L25 10L15 25L10 20Z" fill="#F37D0F"/>
+    <path d="M22 15L32 30L27 35L17 20L22 15Z" fill="#F37D0F"/>
+    <path d="M20 5L32 30L27 35L10 20L20 5Z" fill="url(#paint0_linear)"/>
+    <text x="45" y="28" font-family="'Manrope', sans-serif" font-weight="800" font-size="24" fill="#FFFFFF">samura<tspan fill="#F37D0F">VPS</tspan></text>
+    <defs>
+        <linearGradient id="paint0_linear" x1="10" y1="5" x2="32" y2="35" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FFB067"/>
+            <stop offset="1" stop-color="#F37D0F"/>
+        </linearGradient>
+    </defs>
+</svg>

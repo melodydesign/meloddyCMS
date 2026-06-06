@@ -1,0 +1,18 @@
+{
+  "step": 843,
+  "tool": "replace_file_content",
+  "file": "docs.html",
+  "target": "c:\\Users\\9\\Desktop\\meloddyCMS\\public\\docs.html",
+  "args": {
+    "AllowMultiple": "false",
+    "Description": "\"Fix early closing of dashboard-container in docs.html\"",
+    "EndLine": "567",
+    "Instruction": "\"Remove extra closing div before sectionFeatures\"",
+    "ReplacementContent": "\"                </div> <!-- END sectionDev -->\\n\\n                <!-- Section: Возможности CMS -->\"",
+    "StartLine": "563",
+    "TargetContent": "\"                </div> \\n                        \\n                </div> <!-- END sectionDev -->\\n\\n                <!-- Section: Возможности CMS -->\"",
+    "TargetFile": "\"c:\\\\Users\\\\9\\\\Desktop\\\\meloddyCMS\\\\public\\\\docs.html\"",
+    "toolAction": "\"Editing file\"",
+    "toolSummary": "\"Fix docs.html div structure\""
+  }
+}

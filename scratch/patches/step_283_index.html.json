@@ -1,0 +1,14 @@
+{
+  "step": 283,
+  "tool": "multi_replace_file_content",
+  "file": "index.html",
+  "target": "c:\\Users\\9\\Desktop\\meloddyCMS\\public\\index.html",
+  "args": {
+    "Description": "\"Add check-auth to index.html\"",
+    "Instruction": "\"Add check auth in index.html to change login links to dashboard\"",
+    "ReplacementChunks": "[{\"AllowMultiple\":false,\"EndLine\":585,\"ReplacementContent\":\"    <script>\\n        // Check if authenticated to switch \\\"Вход\\\" to \\\"Дашборд\\\"\\n        fetch('/api/check-auth').then(res => res.json()).then(data => {\\n            if (data && data.user) {\\n                document.querySelectorAll('a[href^=\\\"/login.html\\\"]').forEach(a => {\\n                    a.href = '/dashboard.html';\\n                    if (a.textContent.trim() === 'Вход') {\\n                        a.textContent = 'Дашборд';\\n                    }\\n                });\\n            }\\n        }).catch(() => {});\\n\\n        // Scroll Header\\n        const header = document.getElementById('landHeader');\",\"StartLine\":576,\"TargetContent\":\"    <script>\\n        // Scroll Header\\n        const header = document.getElementById('landHeader');\"}]",
+    "TargetFile": "\"c:\\\\Users\\\\9\\\\Desktop\\\\meloddyCMS\\\\public\\\\index.html\"",
+    "toolAction": "\"Editing file\"",
+    "toolSummary": "\"Edit index.html\""
+  }
+}

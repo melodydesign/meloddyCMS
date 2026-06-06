@@ -1,0 +1,51 @@
+{
+  "nexus": {
+    "owner": 3,
+    "createdAt": "2026-05-27T23:33:45.396Z",
+    "isTemplate": false,
+    "displayName": "nexus",
+    "description": "",
+    "botCode": "GM49WS",
+    "domain": "",
+    "metrikaId": "",
+    "webvisor": false,
+    "favicon": "",
+    "palette": {
+      "primary": "#0070f3",
+      "accent": "#7928ca",
+      "text": "#000000",
+      "bg": "#ffffff"
+    },
+    "fonts": {
+      "header": "Inter",
+      "body": "Inter"
+    },
+    "backupEnabled": false,
+    "backupFrequency": "daily",
+    "telegramToken": "",
+    "telegramChatId": null,
+    "developerAccess": {
+      "code": "DEV-123456",
+      "permissions": {
+        "files": true,
+        "editor": true,
+        "domain": true,
+        "analytics": true
+      }
+    }
+  },
+  "nexus1": {
+    "owner": 3,
+    "createdAt": "2026-05-27T23:33:45.396Z",
+    "isTemplate": false,
+    "displayName": "nexus1",
+    "description": ""
+  },
+  "samuraVPS": {
+    "owner": 3,
+    "createdAt": "2026-05-27T23:33:45.396Z",
+    "isTemplate": false,
+    "displayName": "samuraVPS",
+    "description": ""
+  }
+}

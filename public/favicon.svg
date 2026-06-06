@@ -1,0 +1,8 @@
+<svg width="32" height="36" viewBox="0 0 32 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Top Square (Green) -->
+  <path d="M16 2 L30 8 L16 14 L2 8 Z" stroke="#d7ff53" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Middle Square (Purple) -->
+  <path d="M16 12 L30 18 L16 24 L2 18 Z" stroke="#8b5cf6" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Bottom Square (Green) -->
+  <path d="M16 22 L30 28 L16 34 L2 28 Z" stroke="#d7ff53" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

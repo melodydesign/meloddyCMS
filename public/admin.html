@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ Панель - meloddyCMS</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css?v=9">
+    <script src="/js/theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Top Bar Navigation -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <a href="/dashboard.html" class="topbar-logo">
+                    <img src="/favicon.svg" alt="meloddyCMS">
+                    <span>meloddy<span class="text-gradient">CMS</span></span>
+                </a>
+                <nav class="topbar-nav">
+                    <a href="/dashboard.html" class="topbar-nav-item">Дашборд</a>
+                    <a href="/settings.html" class="topbar-nav-item">Настройки</a>
+                    <a href="/docs.html" class="topbar-nav-item">База знаний</a>
+                    <a href="/admin.html" id="adminSidebarLink" class="topbar-nav-item active">Админка</a>
+                </nav>
+            </div>
+            <div class="topbar-right">
+                <a href="#" id="themeToggleBtn" class="topbar-icon-btn" title="Сменить тему">
+                    <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+                </a>
+                <a href="#" id="logoutBtn" class="topbar-icon-btn" title="Выйти">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard-container" id="adminMainContainer">
+                <h1>Панель Администратора</h1>
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border);">
+                    <button id="tabAdminUsers" class="active" style="padding: 10px 20px; background: none; border: none; border-bottom: 2px solid var(--primary); color: var(--text-main); font-weight: 600; cursor: pointer;">Пользователи</button>
+                    <button id="tabAdminSites" style="padding: 10px 20px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); font-weight: 600; cursor: pointer;">Все сайты</button>
+                </div>
+
+                <!-- Users Section -->
+                <div id="adminUsersSection" style="display: block;">
+                    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead style="background: var(--bg-hover); border-bottom: 1px solid var(--border);">
+                                <tr>
+                                    <th style="padding: 12px 10px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Логин</th>
+                                    <th style="padding: 12px 10px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Роль</th>
+                                    <th style="padding: 12px 10px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Тариф</th>
+                                    <th style="padding: 12px 10px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Код разраба</th>
+                                    <th style="padding: 12px 10px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; text-align: right;">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTableBody">
+                                <tr><td colspan="5" style="padding: 15px; text-align: center; color: var(--text-muted);">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sites Section -->
+                <div id="adminSitesSection" style="display: none;">
+                    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead style="background: var(--bg-hover); border-bottom: 1px solid var(--border);">
+                                <tr>
+                                    <th style="padding: 12px 10px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">ID Сайта</th>
+                                    <th style="padding: 12px 10px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Домен</th>
+                                    <th style="padding: 12px 10px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase;">Владелец</th>
+                                    <th style="padding: 12px 10px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; text-align: right;">Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminSitesTableBody">
+                                <tr><td colspan="4" style="padding: 15px; text-align: center; color: var(--text-muted);">Загрузка...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- User Details Modal -->
+    <div id="adminUserModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 20000; backdrop-filter: blur(5px);">
+        <div style="background: var(--bg-card); padding: 28px; border-radius: var(--radius-lg); width: 800px; max-width: 95%; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); box-shadow: var(--shadow-lg); position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 id="adminUserModalTitle" style="margin: 0; font-size: 1.3rem; font-weight: 700;">Пользователь</h3>
+                <button id="closeAdminUserModal" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- User Limits -->
+                <div style="background: var(--bg-hover); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 0.9rem;">Лимиты сайтов</h4>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="adminUserSiteLimit" min="1" style="width: 80px; padding: 8px; background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-main);">
+                        <button id="btnSaveSiteLimit" class="btn btn-outline" style="padding: 8px 15px; font-size: 0.85rem;">Сохранить лимит</button>
+                    </div>
+                </div>
+                
+                <!-- Danger Zone -->
+                <div style="background: rgba(244,63,94,0.05); padding: 15px; border-radius: var(--radius-md); border: 1px solid rgba(244,63,94,0.2);">
+                    <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 0.9rem; color: #f43f5e;">Опасная зона</h4>
+                    <button id="btnDeleteUser" class="btn" style="background: #f43f5e; color: white; border: none; padding: 8px 15px; font-size: 0.85rem;">Удалить пользователя</button>
+                </div>
+            </div>
+
+            <!-- Sites List -->
+            <h4 style="margin-bottom: 10px; font-size: 1rem;">Сайты пользователя</h4>
+            <div id="adminUserSitesList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+
+            <!-- Activity List -->
+            <h4 style="margin-bottom: 10px; font-size: 1rem;">Последняя активность</h4>
+            <div id="adminUserActivityList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+    </div>
+
+    <!-- Edit Site Modal -->
+    <div id="editSiteModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 20000; backdrop-filter: blur(5px);">
+        <div style="background: var(--bg-card); padding: 28px; border-radius: var(--radius-lg); width: 450px; max-width: 95%; border: 1px solid var(--border); box-shadow: var(--shadow-lg); position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; font-size: 1.3rem; font-weight: 700;">Редактирование сайта: <span id="editSiteIdLabel"></span></h3>
+                <button id="closeEditSiteModal" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>
+            </div>
+            
+            <form id="editSiteForm" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="hidden" id="editSiteIdInput">
+                
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Владелец сайта (Клиент)</label>
+                    <select id="editSiteOwnerSelect" style="width: 100%; padding: 10px; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm);"></select>
+                </div>
+                
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Код разработчика (Опционально)</label>
+                    <input type="text" id="editSiteDeveloperCode" placeholder="Например: a1b2c3d4" style="width: 100%; padding: 10px; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                    <button type="button" id="cancelEditSiteBtn" class="btn btn-outline" style="padding: 8px 15px;">Отмена</button>
+                    <button type="submit" class="btn" style="padding: 8px 15px;">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/utils.js"></script>
+    <script src="/js/toast.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>

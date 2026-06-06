@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База знаний - meloddyCMS</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/css/style.css?v=9">
+    <script src="/js/theme.js"></script>
+    <script>
+        fetch('/api/check-auth').then(res => {
+            if (!res.ok) window.location.href = '/login.html';
+        }).catch(() => window.location.href = '/login.html');
+    </script>
+    <style>
+        .docs-page-container {
+            padding: 2rem 3rem;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+        
+        .docs-hero {
+            margin-bottom: 2rem;
+        }
+        
+        .docs-hero h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: var(--text-main);
+        }
+        
+        .docs-hero p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .docs-tabs-wrapper {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .docs-tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+        
+        .docs-tab-btn:hover {
+            color: var(--text-main);
+        }
+        
+        .docs-tab-btn.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--text-main);
+        }
+
+        .docs-layout {
+            display: flex;
+            gap: 3rem;
+            align-items: flex-start;
+        }
+
+        .docs-toc {
+            position: sticky;
+            top: 2.5rem;
+            width: 260px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border);
+            padding-right: 1.5rem;
+            max-height: calc(100vh - 5rem);
+            overflow-y: auto;
+        }
+
+        .docs-toc a {
+            display: block;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            padding: 8px 14px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .docs-toc a:hover, .docs-toc a.active {
+            background: var(--bg-hover);
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .docs-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .docs-section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 2rem;
+        }
+        
+        .docs-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-main);
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .docs-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            color: var(--text-main);
+        }
+        
+        .docs-section p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 1.25rem;
+        }
+        
+        .docs-section strong {
+            color: var(--text-main);
+        }
+        
+        .docs-section ol, .docs-section ul {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            padding-left: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        
+        .docs-section li {
+            margin-bottom: 0.5rem;
+        }
+        
+        code {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: #2563EB;
+        }
+        
+        .code-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            position: relative;
+            overflow-x: auto;
+            transition: border-color 0.3s ease;
+        }
+
+        .code-block:hover {
+            border-color: var(--text-placeholder);
+        }
+        
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+        
+        .callout {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+
+        .callout:hover {
+            border-color: var(--text-placeholder);
+            border-left-color: var(--primary);
+        }
+        
+        .callout.tip {
+            border-left-color: #10b981;
+        }
+        
+        .callout.warning {
+            border-left-color: #f43f5e;
+        }
+        
+        .callout-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+        }
+        
+        .callout-icon.tip { color: #10b981; }
+        .callout-icon.warning { color: #f43f5e; }
+        .callout-icon.info { color: var(--primary); }
+        
+        .callout-content {
+            flex: 1;
+        }
+        
+        .callout-content h4 {
+            margin: 0 0 0.4rem 0;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        
+        .callout-content p {
+            margin: 0;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        
+        .view-section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .view-section.active {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Top Bar Navigation -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <a href="/dashboard.html" class="topbar-logo">
+                    <img src="/favicon.svg" alt="meloddyCMS">
+                    <span>meloddy<span class="text-gradient">CMS</span></span>
+                </a>
+                <nav class="topbar-nav">
+                    <a href="/dashboard.html" class="topbar-nav-item">Дашборд</a>
+                    <a href="/settings.html" class="topbar-nav-item">Настройки</a>
+                    <a href="/docs.html" class="topbar-nav-item active">База знаний</a>
+                    <a href="/admin.html" id="adminSidebarLink" class="topbar-nav-item" style="display: none;">Админка</a>
+                </nav>
+            </div>
+            <div class="topbar-right">
+                <a href="#" id="themeToggleBtn" class="topbar-icon-btn" title="Сменить тему">
+                    <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+                </a>
+                <a href="#" id="logoutBtn" class="topbar-icon-btn" title="Выйти">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </a>
+            </div>
+        </header>
+        <script>
+            fetch('/api/check-auth').then(res => res.json()).then(data => {
+                if(data && data.user && data.user.role === 'admin') {
+                    document.getElementById('adminSidebarLink').style.display = 'inline-flex';
+                }
+            }).catch(()=>{});
+        </script>
+
+        <!-- Main Content -->
+        <main class="main-content" style="padding: 0;">
+            <div class="docs-page-container">
+                <div class="docs-hero">
+                    <h1>База знаний</h1>
+                    <p>Все инструкции от А до Я по работе с системой и ее архитектурой</p>
+                </div>
+                
+                <div class="docs-tabs-wrapper">
+                    <button id="btnTabClient" class="docs-tab-btn active">Для клиентов</button>
+                    <button id="btnTabDev" class="docs-tab-btn">Для разработчиков</button>
+                </div>
+
+                <!-- CLIENT VIEW -->
+        <div id="viewClient" class="view-section active">
+            <div class="docs-layout">
+                <aside class="docs-toc">
+                    <div class="docs-toc-title">Оглавление</div>
+                    <a href="#client-start" class="toc-link">1. Начало работы</a>
+                    <a href="#client-dashboard" class="toc-link">2. Дашборд и Проекты</a>
+                    <a href="#client-editor" class="toc-link">3. Визуальный редактор</a>
+                    <a href="#client-settings" class="toc-link">4. Настройки сайта и SEO</a>
+                    <a href="#client-leads" class="toc-link">5. Заявки с сайта (Лиды)</a>
+                    <a href="#client-templates" class="toc-link">6. Создание из шаблонов</a>
+                    <a href="#client-files" class="toc-link">7. Управление файлами</a>
+                    <a href="#client-crm" class="toc-link">8. Работа с лидами и CRM</a>
+                    <a href="#client-domains" class="toc-link">9. Домены и SSL-сертификаты</a>
+                    <a href="#client-users" class="toc-link">10. Управление пользователями</a>
+                    <a href="#client-webhooks" class="toc-link">11. Интеграция вебхуков</a>
+                    <a href="#client-backups" class="toc-link">12. Резервные копии и история</a>
+                </aside>
+
+                <div class="docs-content">
+                    
+                    <section id="client-start" class="docs-section">
+                        <h2>1. Начало работы</h2>
+                        <p>Добро пожаловать в meloddyCMS! Платформа предназначена для легкого и интуитивного управления контентом ваших сайтов без необходимости знать программирование.</p>
+                        <h3>Регистрация и Вход</h3>
+                        <p>Вы можете самостоятельно зарегистрироваться на платформе. Для этого нажмите кнопку <strong>«Начать работу»</strong> на главной странице сайта или перейдите по ссылке <code>https://meloddy-crm.ru/login.html?mode=register</code>. Создайте свой аккаунт администратора, указав имя, действующий email и надежный пароль.</p>
+                        <div class="callout tip">
+                            <div class="callout-icon tip">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            </div>
+                            <div class="callout-content">
+                                <h4>Личный профиль</h4>
+                                <p>В любой момент вы можете изменить свое отображаемое имя или адрес электронной почты. Для этого перейдите в раздел <strong>«Настройки»</strong> (вкладка <strong>«Профиль»</strong>) в левом боковом меню панели управления.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="client-dashboard" class="docs-section">
+                        <h2>2. Дашборд и Проекты</h2>
+                        <p>После входа вы попадаете на <strong>Дашборд</strong>. Это ваш главный пульт управления.</p>
+                        <ul>
+                            <li><strong>Статистика:</strong> Верхние плашки показывают общую сводку по вашему аккаунту: сколько у вас сайтов, сколько на них загружено изображений и какой объем на диске они занимают.</li>
+                            <li><strong>Активные проекты:</strong> Здесь в виде красивых карточек отображаются ваши сайты. По клику на кнопку редактирования вы перейдете в режим визуального редактора.</li>
+                            <li><strong>Последняя активность:</strong> Лента событий, показывающая, какие файлы изменялись в последнее время. Вы можете фильтровать ее по периоду (сегодня, неделя, месяц) и по конкретному сайту.</li>
+                        </ul>
+                        <p>В карточке каждого проекта есть кнопка с тремя точками (<strong>...</strong>). При нажатии на неё откроется меню управления конкретным сайтом (настройки, SEO, аналитика и действия).</p>
+                    </section>
+
+                    <section id="client-editor" class="docs-section">
+                        <h2>3. Визуальный редактор</h2>
+                        <p>Это главная фишка meloddyCMS. Вы редактируете сайт прямо поверх его реального дизайна.</p>
+                        <h3>Как менять текст</h3>
+                        <p>Наведите мышку на любой текст. Если он обвелся пунктирной линией, значит его можно изменить. Просто кликните по нему, сотрите старый текст и напишите новый. Форматирование (жирность, размер) сохранится автоматически.</p>
+                        <h3>Как менять картинки</h3>
+                        <p>Аналогично наведите на фотографию, логотип или иконку. По клику откроется стандартное окно вашего компьютера для выбора файла. Выберите новое изображение, и оно моментально загрузится на сайт.</p>
+                        
+                        <div class="callout warning">
+                            <div class="callout-icon warning">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            </div>
+                            <div class="callout-content">
+                                <h4>Черновики и публикация</h4>
+                                <p>Когда вы вносите изменения, они сохраняются только для вас в виде черновика. Посетители сайта их не видят! Чтобы выкатить изменения на боевой сайт, обязательно нажмите фиолетовую кнопку <strong>«Опубликовать»</strong> на верхней панели редактора.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="client-settings" class="docs-section">
+                        <h2>4. Настройки сайта и SEO</h2>
+                        <p>В дашборде, нажав <strong>(...)</strong> на карточке проекта, вы попадете в детальную панель управления сайтом, разделенную на несколько вкладок:</p>
+                        <ul>
+                            <li><strong>Вкладка «Настройки»:</strong> Здесь вы можете переименовать проект внутри CMS, добавить описание для клиентов, привязать собственный домен и загрузить favicon (иконку сайта).</li>
+                            <li><strong>Вкладка «Обзор»:</strong> Раздел детальной аналитики. Выводит количество просмотров и кликов, график визитов за неделю, статистику по типам устройств/браузеров посетителей, а также историю последних изменений.</li>
+                            <li><strong>Вкладка «SEO & Интеграции»:</strong> Важнейший блок для продвижения. Здесь настраиваются файл <code>robots.txt</code>, генерируется ссылка на авто-обновляемую карту сайта <code>sitemap.xml</code>, подключается ID счетчика Яндекс Метрики (с поддержкой Вебвизора) и привязываются уведомления в Telegram.</li>
+                            <li><strong>Вкладка «Доступ & Бэкапы»:</strong> Позволяет привязать сайт к коду вашего разработчика, настроить периодичность автобэкапов (каждый день, неделю или месяц), а также вручную создавать, скачивать и восстанавливать резервные копии проекта.</li>
+                            <li><strong>Вкладка «Опасная зона»:</strong> Служит для переноса прав владения сайтом на другой email или полного удаления проекта из CMS.</li>
+                        </ul>
+                    </section>
+
+                    <section id="client-leads" class="docs-section">
+                        <h2>5. Заявки с сайта (Лиды)</h2>
+                        <p>Система может перехватывать данные с форм обратной связи на вашем сайте и моментально отправлять их вам в мессенджер.</p>
+                        <h3>Настройка Telegram</h3>
+                        <p>Чтобы бот присылал вам уведомления:</p>
+                        <ol>
+                            <li>Найдите в Telegram и запустите нашего официального бота: <code>@meloddyCMS_bot</code> (нажмите <strong>«Запустить» / Start</strong>).</li>
+                            <li>В меню бота запросите код для привязки нового сайта (бот выдаст вам короткий шестизначный код).</li>
+                            <li>В панели управления CMS в карточке нужного сайта нажмите три точки <strong>(...)</strong>, выберите вкладку <strong>«SEO & Интеграции»</strong>.</li>
+                            <li>В блоке <strong>«Уведомления в Telegram»</strong> введите полученный из бота код и нажмите <strong>«Подключить»</strong>.</li>
+                            <li>Готово! Теперь все заявки с форм этого сайта будут мгновенно присылаться ботом прямо в ваш чат.</li>
+                        </ol>
+                    </section>
+
+                    <section id="client-templates" class="docs-section">
+                        <h2>6. Создание из шаблонов</h2>
+                        <p>Если ваш разработчик подготовил для вас шаблоны, вы найдете их в Дашборде на вкладке <strong>«Шаблоны»</strong>.</p>
+                        <p>Чтобы развернуть новый сайт, достаточно нажать кнопку на карточке шаблона, ввести название нового проекта (ID) и подтвердить. CMS сама создаст точную копию этого шаблона в виде отдельного проекта, в котором вы сразу же сможете менять контент через визуальный редактор!</p>
+                    </section>
+
+                    <section id="client-files" class="docs-section">
+                        <h2>7. Управление файлами и медиатекой</h2>
+                        <p>В meloddyCMS встроен продвинутый, но простой в использовании <strong>Файловый менеджер</strong>. Доступ к нему осуществляется через главное меню в левой панели или по клику на кнопку «Файлы» в карточке нужного проекта.</p>
+                        <h3>Загрузка и организация</h3>
+                        <p>Вы можете перетаскивать файлы картинок, документов (PDF, DOCX) прямо в окно файлового менеджера. Все они будут бережно сохранены в структуре папок вашего сайта.</p>
+                        <ul>
+                            <li><strong>Оптимизация картинок:</strong> При загрузке через визуальный редактор система автоматически сжимает тяжелые фотографии, подгоняя их под веб-стандарты без видимой потери качества. При загрузке через Файловый менеджер файлы загружаются «как есть» — это полезно для документов.</li>
+                            <li><strong>Лимиты и квоты:</strong> Каждому проекту выделяется определенный объем дискового пространства на сервере (отображается на плашке дашборда). Если место заканчивается, вы можете удалить старые неиспользуемые скриншоты или архивы.</li>
+                        </ul>
+                        <div class="callout tip">
+                            <div class="callout-icon tip">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            </div>
+                            <div class="callout-content">
+                                <h4>Использование подпапок</h4>
+                                <p>Для поддержания порядка создавайте отдельные папки, например <code>/docs</code> для PDF-инструкций и <code>/images/blog</code> для картинок новостей. Это предотвратит кашу в корневой папке.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="client-crm" class="docs-section">
+                        <h2>8. Работа с лидами и встроенной CRM</h2>
+                        <p>Все контакты клиентов, которые заполняют формы на ваших сайтах, сохраняются во встроенную <strong>микро-CRM систему</strong>.</p>
+                        <h3>Панель «Заявки» (Канбан-доска)</h3>
+                        <p>В главном меню перейдите в раздел <strong>«Заявки»</strong>. Вы увидите доску со столбцами, представляющими этапы воронки продаж:</p>
+                        <ol>
+                            <li><strong>Новые:</strong> Сюда попадают только что отправленные формы. Они подсвечиваются ярким цветом.</li>
+                            <li><strong>В работе:</strong> Перетащите карточку сюда, когда начали общение с клиентом.</li>
+                            <li><strong>Завершено:</strong> Успешно закрытые сделки.</li>
+                            <li><strong>Отказ:</strong> Спам или нецелевые запросы.</li>
+                        </ol>
+                        <p>Вы можете кликнуть на любую карточку лида, чтобы увидеть полные детали: дату отправки, страницу, с которой пришла заявка, и все заполненные поля формы. Также внутри карточки можно оставлять текстовые заметки для менеджеров.</p>
+                        <h3>Экспорт данных</h3>
+                        <p>При необходимости выгрузить базу лидов для рассылки или анализа, воспользуйтесь кнопкой <strong>«Экспорт в Excel (CSV)»</strong>. Файл скачается моментально.</p>
+                    </section>
+
+                    <section id="client-domains" class="docs-section">
+                        <h2>9. Домены и SSL-сертификаты</h2>
+                        <p>По умолчанию ваши проекты доступны на служебных поддоменах вида <code>site-123.meloddy.ru</code>. Для боевого запуска необходимо привязать собственный домен.</p>
+                        <h3>Шаги для подключения домена:</h3>
+                        <ol>
+                            <li>Купите домен у любого регистратора (Reg.ru, Ru-Center, Beget и др.).</li>
+                            <li>В панели управления регистратора перейдите в настройки DNS и добавьте следующую запись:
+                                <ul>
+                                    <li>Тип: <code>A</code>, Имя (Хост): <code>@</code> (или пустое), Значение (IP): <code>195.209.214.15</code></li>
+                                    <li>Тип: <code>CNAME</code>, Имя (Хост): <code>www</code>, Значение: <code>ваш-домен.ru.</code></li>
+                                </ul>
+                            </li>
+                            <li>В дашборде meloddyCMS нажмите на три точки <strong>(...)</strong> у вашего проекта, выберите вкладку <strong>«Настройки»</strong>, введите имя домена и сохраните.</li>
+                        </ol>
+                        <div class="callout tip">
+                            <div class="callout-icon tip">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            </div>
+                            <div class="callout-content">
+                                <h4>Автоматический SSL-сертификат (HTTPS)</h4>
+                                <p>Система сама отслеживает обновление DNS-записей и в течение 15 минут после привязки бесплатно выпустит SSL-сертификат Let's Encrypt для безопасного соединения HTTPS.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="client-users" class="docs-section">
+                        <h2>10. Управление пользователями и правами доступа</h2>
+                        <p>meloddyCMS поддерживает разграничение прав доступа. Это позволяет безопасно давать доступ разным специалистам.</p>
+                        <h3>Роли в системе</h3>
+                        <ul>
+                            <li><strong>Администратор (Owner):</strong> Обладает полным доступом ко всем настройкам, созданию новых проектов, привязке доменов, оплате и управлению пользователями.</li>
+                            <li><strong>Клиент (Client Editor):</strong> Может заходить в визуальный редактор своих проектов, менять тексты и изображения, работать с CRM (заявками), просматривать аналитику. У него нет прав на удаление проектов или изменение системных конфигураций серверов.</li>
+                            <li><strong>Разработчик (Developer):</strong> Имеет доступ к загрузке ZIP-архивов с версткой, управлению шаблонами, редактированию файлов исходного кода через Файловый менеджер и настройкам прикрепления разработчика. Не видит личные финансовые данные владельца.</li>
+                        </ul>
+                    </section>
+
+                    <section id="client-webhooks" class="docs-section">
+                        <h2>11. Интеграция вебхуков и внешних CRM (В разработке)</h2>
+                        <p>Если вы используете сторонние CRM-системы (например, amoCRM или Bitrix24), вы можете настроить интеграцию для автоматической пересылки лидов.</p>
+                        <h3>Прямая интеграция по API</h3>
+                        <p>На данный момент автоматическая отправка вебхуков находится в стадии активной разработки. Однако вы можете легко подключить внешнюю CRM-систему, используя наш REST API для получения лидов или внедрив кастомный JavaScript-код формы, который будет отправлять данные параллельно в вашу CRM.</p>
+                        <p>Это позволяет связывать формы сайта с любыми конструкторами автоматизации, такими как Albato, Make или Integromat.</p>
+                    </section>
+
+                    <section id="client-backups" class="docs-section">
+                        <h2>12. Резервные копии и история версий</h2>
+                        <p>Мы заботимся о сохранности ваших данных и автоматически делаем ежедневные бэкапы всей платформы.</p>
+                        <h3>Самостоятельные бэкапы проекта</h3>
+                        <p>Вы можете в любой момент выгрузить полную актуальную копию вашего сайта. Для этого зайдите в детальные настройки сайта (...), выберите вкладку <strong>«Доступ & Бэкапы»</strong> и нажмите <strong>«Скачать»</strong> (предварительно можно нажать <strong>«Создать бэкап»</strong> для создания свежей версии). Вы получите архив с HTML-кодом, скриптами и всеми вашими картинками.</p>
+                        <p>Если вы случайно удалили важный блок или испортили страницу в визуальном редакторе, вы можете выбрать один из сохраненных бэкапов в выпадающем списке во вкладке <strong>«Доступ & Бэкапы»</strong> и восстановить сайт до этой точки сохранения.</p>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+
+                <div id="viewDev" class="view-section">
+            <div class="docs-layout">
+                <aside class="docs-toc">
+                    <div class="docs-toc-title">Оглавление</div>
+                    <a href="#dev-integration" class="toc-link">1. Интеграция верстки</a>
+                    <a href="#dev-markup" class="toc-link">2. Разметка элементов</a>
+                    <a href="#dev-forms" class="toc-link">3. Подключение форм</a>
+                    <a href="#dev-templates" class="toc-link">4. Создание шаблонов</a>
+                    <a href="#dev-dynamic" class="toc-link">5. Динамика и JS</a>
+                    <a href="#dev-seo" class="toc-link">6. Тонкое SEO и OG</a>
+                    <a href="#dev-api" class="toc-link">7. REST API CMS</a>
+                    <a href="#dev-local" class="toc-link">8. Локальная разработка</a>
+                    <a href="#dev-sqlite" class="toc-link">9. База данных SQLite</a>
+                    <a href="#dev-perf" class="toc-link">10. Оптимизация скорости</a>
+                    <a href="#dev-ai-prompt" class="toc-link">11. Авто-посадка через ИИ</a>
+                </aside>
+
+                <div class="docs-content">
+                    
+                    <section id="dev-integration" class="docs-section">
+                        <h2>1. Интеграция верстки (Посадка)</h2>
+                        <p>meloddyCMS не требует изучения сложных языков шаблонизаторов. Посадка происходит прямо на вашу готовую HTML-верстку.</p>
+                        <ol>
+                            <li>Возьмите вашу готовую папку с сайтом (с <code>index.html</code>, папками css, js, img).</li>
+                            <li>Убедитесь, что пути к стилям и картинкам в HTML — <strong>относительные от корня</strong> (например, <code>&lt;img src="/img/logo.png"&gt;</code>).</li>
+                            <li>Запакуйте содержимое папки (именно файлы, а не саму папку) в ZIP-архив.</li>
+                            <li>В Дашборде админки нажмите <strong>«Загрузить сайт (.ZIP)»</strong> и выберите ваш архив.</li>
+                            <li>Система сама распакует сайт, настроит роутинг и сделает его доступным в CMS.</li>
+                        </ol>
+                        <div class="callout tip">
+                            <div class="callout-icon tip">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            </div>
+                            <div class="callout-content">
+                                <h4>Важно для мультистраничников</h4>
+                                <p>Если у вас несколько страниц (например, <code>index.html</code> и <code>about.html</code>), загружайте их все в одном архиве. CMS автоматически найдет все HTML-файлы и сделает их редактируемыми.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="dev-markup" class="docs-section">
+                        <h2>2. Разметка элементов</h2>
+                        <p>Чтобы клиент мог менять текст или картинки в Визуальном редакторе, вам нужно разметить нужные теги специальными <code>data</code>-атрибутами.</p>
+                        
+                        <h3>Редактирование текста (data-editable)</h3>
+                        <p>Добавьте атрибут <code>data-editable="уникальный_ключ"</code> к любому текстовому тегу (h1-h6, p, span, div). Ключ должен быть уникальным в рамках страницы.</p>
+                        <div class="code-block">
+                            <pre>&lt;h1 data-editable="hero_title"&gt;Мы создаем сайты&lt;/h1&gt;
+&lt;p data-editable="hero_subtitle"&gt;Быстро и качественно&lt;/p&gt;</pre>
+                        </div>
+                        
+                        <h3>Замена изображений (data-img-editable)</h3>
+                        <p>Для тегов <code>&lt;img&gt;</code> используйте атрибут <code>data-img-editable="ключ"</code>. При клике в редакторе откроется загрузчик файлов.</p>
+                        <div class="code-block">
+                            <pre>&lt;img data-img-editable="about_photo" src="/img/about.jpg" alt="О нас"&gt;</pre>
+                        </div>
+                        
+                        <h3>Фоновые изображения (data-bg-editable)</h3>
+                        <p>Если картинка задана через CSS свойство <code>background-image</code> (inline style), используйте <code>data-bg-editable="ключ"</code>.</p>
+                        <div class="code-block">
+                            <pre>&lt;section data-bg-editable="main_banner" style="background-image: url('/img/banner.jpg');"&gt;
+    ...
+&lt;/section&gt;</pre>
+                        </div>
+                    </section>
+
+                    <section id="dev-forms" class="docs-section">
+                        <h2>3. Подключение форм (Лиды)</h2>
+                        <p>Для отправки заявок с сайта в Telegram-бот CMS, вам не нужно писать PHP-скрипты или настраивать SMTP. Достаточно слегка модифицировать вашу HTML-форму.</p>
+                        <ol>
+                            <li>Форма должна отправлять данные POST-запросом на наш API-эндпоинт: <code>action="/api/submit-form"</code>.</li>
+                            <li>Каждое поле (input) должно иметь понятный атрибут <code>name</code> (например: <code>name="Телефон"</code>, <code>name="Имя"</code>). CMS использует эти имена для формирования красивого сообщения в Telegram.</li>
+                            <li>Форма должна перехватываться через JS, либо редиректить на страницу "Спасибо". <em>(Для базовой работы CMS сама отловит submit, если подключен наш базовый скрипт интеграции).</em></li>
+                        </ol>
+                        <div class="code-block">
+                            <pre>&lt;form action="/api/submit-form" method="POST"&gt;
+    &lt;input type="text" name="Имя" placeholder="Ваше имя" required&gt;
+    &lt;input type="tel" name="Телефон" placeholder="Ваш телефон" required&gt;
+    &lt;button type="submit"&gt;Оставить заявку&lt;/button&gt;
+&lt;/form&gt;</pre>
+                        </div>
+                    </section>
+
+                    <section id="dev-templates" class="docs-section">
+                        <h2>4. Создание шаблонов</h2>
+                        <p>Шаблоны позволяют вам один раз собрать типовой сайт (например, квиз или лендинг для стройки), а затем создавать из него новые проекты для клиентов в один клик.</p>
+                        
+                        <h3>Как создать шаблон:</h3>
+                        <ol>
+                            <li>Сверстайте сайт и полностью разметьте его <code>data-editable</code> атрибутами.</li>
+                            <li>Создайте в корне папки файл <code>template.json</code> со следующим содержимым:</li>
+                        </ol>
+                        <div class="code-block">
+                            <pre>{
+  "name": "Лендинг: Строительство домов",
+  "description": "Светлый шаблон со слайдером и формой",
+  "version": "1.0.0"
+}</pre>
+                        </div>
+                        <ol start="3">
+                            <li>Запакуйте все файлы сайта (вместе с <code>template.json</code>) в ZIP-архив.</li>
+                            <li>В Дашборде админки перейдите на вкладку <strong>«Шаблоны»</strong> и загрузите этот архив.</li>
+                        </ol>
+                        <p>Теперь вы сможете разворачивать этот сайт под новых клиентов моментально, просто указывая новый домен или ID проекта!</p>
+                    </section>
+
+                    <section id="dev-dynamic" class="docs-section">
+                        <h2>5. Динамические компоненты и скрипты</h2>
+                        <p>В отличие от классических CMS, которые перестраивают DOM дерева и ломают ваши JavaScript плагины (слайдеры, табы, анимации), визуальный редактор meloddyCMS работает в режиме прямого редактирования.</p>
+                        <h3>Сохранение работоспособности JS</h3>
+                        <p>Когда пользователь редактирует текст или меняет картинку, CMS обновляет только текстовые узлы или атрибут <code>src</code>, не перезагружая страницу и не ломая привязанные JS-слушатели событий.</p>
+                        <ul>
+                            <li><strong>Динамические слайдеры:</strong> Если у вас есть инициализированный слайдер Swiper или Slick, он продолжит работать в визуальном редакторе. Если пользователь изменит изображение в слайде, оно обновится «на лету».</li>
+                            <li><strong>Рекомендация:</strong> Для элементов, которые скрыты при загрузке (например, модальные окна), вы можете использовать атрибут <code>data-editable</code>, но чтобы клиент мог их увидеть в редакторе, CMS предоставляет специальную панель просмотра скрытых элементов.</li>
+                        </ul>
+                    </section>
+
+                    <section id="dev-seo" class="docs-section">
+                        <h2>6. Тонкая настройка SEO и метатегов</h2>
+                        <p>Вы можете позволить клиенту самостоятельно редактировать SEO-параметры страницы, используя системные <code>data</code>-атрибуты.</p>
+                        <p>Помимо вкладки «SEO & Файлы» в настройках дашборда, вы можете внедрить прямое редактирование метатегов в HTML коде шаблона:</p>
+                        <ul>
+                            <li><code>&lt;title data-editable="meta_title"&gt;...&lt;/title&gt;</code> — позволяет клиенту менять заголовок вкладки.</li>
+                            <li><code>&lt;meta name="description" content="Отредактируйте меня" data-editable="meta_description"&gt;</code> — описание для поисковиков.</li>
+                            <li>Для картинок OpenGraph (OG Image) используйте <code>&lt;meta property="og:image" content="/img/share.jpg" data-img-editable="og_image"&gt;</code>.</li>
+                        </ul>
+                    </section>
+
+                    <section id="dev-api" class="docs-section">
+                        <h2>7. REST API Платформы</h2>
+                        <p>meloddyCMS предоставляет набор REST API эндпоинтов, которые вы можете использовать для интеграции с внешними системами или разработки собственных расширений.</p>
+                        <h3>Основные эндпоинты:</h3>
+                        <ul>
+                            <li><code>GET /api/sites</code> — получить список всех сайтов текущего пользователя (доступно для ролей <code>admin</code> и <code>developer</code>).</li>
+                            <li><code>POST /api/sites</code> — создать новый сайт на основе ZIP-архива.</li>
+                            <li><code>GET /api/sites/:id/files</code> — получить структуру файлов проекта в формате JSON.</li>
+                            <li><code>POST /api/submit-form</code> — эндпоинт для отправки лидов. Принимает JSON или url-encoded данные и пересылает их в привязанный Telegram-чат.</li>
+                            <li><code>POST /api/settings/developer</code> — привязка разработчика к сайту по уникальному коду.</li>
+                        </ul>
+                    </section>
+
+                    <section id="dev-local" class="docs-section">
+                        <h2>8. Локальная разработка и синхронизация</h2>
+                        <p>Для удобства разработки шаблонов и верстки вы можете использовать Git и разрабатывать сайты на своем локальном компьютере.</p>
+                        <h3>Синхронизация через FTP/SFTP или Git</h3>
+                        <p>Вы можете настроить автоматический деплой из вашей IDE (VS Code, WebStorm) прямо в директорию сайтов на сервере:</p>
+                        <ul>
+                            <li>Путь к проектам на сервере: <code>/home/ubuntuuser/meloddy-cms/data/sites/[siteId]</code>.</li>
+                            <li>При обновлении файлов напрямую на сервере кэш визуального редактора сбрасывается автоматически, и клиент сразу видит обновленную верстку при следующем входе в редактор.</li>
+                        </ul>
+                        <div class="callout warning">
+                            <div class="callout-icon warning">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            </div>
+                            <div class="callout-content">
+                                <h4>Осторожно с перезаписью</h4>
+                                <p>Если клиент уже отредактировал тексты на сайте через CMS, а вы зальете поверх новый ZIP-архив с версткой без сохранения файлов данных, то правки клиента могут быть заменены исходными текстами из верстки. Всегда делайте бэкап данных перед обновлением структуры!</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="dev-sqlite" class="docs-section">
+                        <h2>9. База данных SQLite и архитектура данных</h2>
+                        <p>Вся конфигурация пользователей, проекты, связи с Telegram и лиды хранятся в легковесной и быстрой базе данных SQLite.</p>
+                        <h3>Схема БД и файлы данных:</h3>
+                        <ul>
+                            <li>Файл базы данных находится по пути: <code>data/database.sqlite</code> (или конфигурационный файл <code>users.json</code> / <code>sites.json</code> в зависимости от сборки).</li>
+                            <li>Таблица <code>leads</code> содержит поля: <code>id</code> (уникальный номер), <code>site_id</code> (ID сайта), <code>data</code> (JSON строка со всеми полями формы), <code>status</code> (статус в CRM: new, in_progress, completed, rejected), <code>created_at</code> (дата создания).</li>
+                            <li>Конфигурационные данные каждого отдельного сайта хранятся в скрытой папке проекта: <code>data/sites/[siteId]/.meloddy/config.json</code>.</li>
+                        </ul>
+                    </section>
+
+                    <section id="dev-perf" class="docs-section">
+                        <h2>10. Оптимизация производительности и скорость загрузки</h2>
+                        <p>meloddyCMS не делает лишних запросов к базе данных при открытии ваших сайтов посетителями. Все страницы отдаются напрямую веб-сервером Nginx как статический HTML, что обеспечивает невероятную скорость работы (100 баллов в Google PageSpeed Insights).</p>
+                        <h3>Рекомендации по оптимизации:</h3>
+                        <ol>
+                            <li>Используйте современные форматы изображений (WebP, SVG).</li>
+                            <li>Подключайте CSS в шапке документа, а JS — в самом конце перед закрывающим тегом <code>&lt;/body&gt;</code> с атрибутом <code>defer</code>.</li>
+                            <li>Минифицируйте ваши ассеты перед упаковкой в ZIP. CMS отдает файлы в оригинальном виде, поэтому предварительная минификация CSS/JS сэкономит трафик ваших пользователей.</li>
+                        </ol>
+                    </section>
+
+                    <section id="dev-ai-prompt" class="docs-section">
+                        <h2>11. Авто-посадка и подготовка верстки через ИИ</h2>
+                        <p>Чтобы максимально ускорить посадку сайта на meloddyCMS (особенно если верстка сгенерирована ИИ-конструкторами или визуальными средами вроде VibeCode), вы можете использовать любой ИИ-ассистент (Claude, ChatGPT, Gemini).</p>
+                        <p>Используйте следующий подготовленный промпт. Скопируйте его и отправьте в чат с ИИ вместе с архивом вашего проекта или кодом страниц:</p>
+                        
+                        <div class="code-block">
+                            <pre>Ты — специализированный транскомпилятор и системный нормализатор статической верстки для платформы meloddyCMS. 
+Твоя задача — преобразовать предоставленные исходные файлы верстки (HTML, CSS, JS, медиа-ресурсы), включая экспортированные из визуальных сред и генераторов кода (таких как VibeCode), и полностью подготовить их к интеграции с платформой meloddyCMS.
+
+Выполняй обработку строго по шагам (Chain of Thought), следуя техническому регламенту ниже.
+
+---
+
+### ТЕХНИЧЕСКИЙ РЕГЛАМЕНТ ОБРАБОТКИ ВЕРСТКИ
+
+#### ШАГ 1: Реорганизация структуры каталогов
+Приведи файловую структуру проекта к следующему стандарту:
+1. Все файлы страниц (*.html) должны быть перенесены исключительно в корень проекта.
+2. Все файлы стилей (*.css) должны быть перенесены в директорию /css/.
+3. Все файлы скриптов (*.js) должны быть перенесены в директорию /js/.
+4. Все медиаресурсы (изображения png/jpg/webp/avif, векторная графика svg, шрифты, иконки, favicon) должны быть перенесены в директорию /img/.
+
+#### ШАГ 2: Нормализация путей в коде (Рефакторинг ссылок)
+Замени все относительные (../, ./, images/, assets/) и абсолютные сторонние пути во всех HTML и CSS файлах на относительные от корня сайта. Каждый путь должен начинаться со знака слэша /:
+- Подключение стилей: &lt;link rel="stylesheet" href="/css/style.css"&gt;
+- Подключение скриптов: &lt;script src="/js/main.js"&gt;&lt;/script&gt;
+- Подключение картинок: &lt;img src="/img/logo.svg"&gt;
+- Фоновые изображения в CSS: background-image: url('/img/hero-bg.webp');
+- Фавикон: &lt;link rel="icon" type="image/svg+xml" href="/favicon.svg"&gt; (favicon.svg находится в корне).
+
+#### ШАГ 3: Интеграция data-атрибутов редактирования (Визуальный редактор)
+Разметь все контентные элементы специальными атрибутами. 
+
+##### Валидация идентификаторов (ID):
+Каждое значение атрибута (ключ) должно:
+1. Быть уникальным в пределах одной страницы.
+2. Соответствовать регулярному выражению: ^[a-z0-9_]+$ (только строчные латинские буквы, цифры и символ подчеркивания).
+3. Иметь длину от 3 до 50 символов.
+4. Отражать семантическое назначение элемента (например: hero_title, benefit_card_1_text).
+
+##### Правила разметки элементов:
+1. Редактируемый текст (data-editable):
+   Добавь атрибут data-editable="[уникальный_ключ]" к тегам: &lt;h1&gt;-&lt;h6&gt;, &lt;p&gt;, &lt;span&gt;, &lt;div class="...-text"&gt;, &lt;a&gt; (если внутри ссылки только простой текст).
+   * ДО: &lt;h2 class="title"&gt;Наши услуги&lt;/h2&gt;
+   * ПОСЛЕ: &lt;h2 class="title" data-editable="services_title"&gt;Наши услуги&lt;/h2&gt;
+2. Заменяемые изображения (data-img-editable):
+   Добавь атрибут data-img-editable="[уникальный_ключ]" к тегам &lt;img&gt;.
+   * ДО: &lt;img class="logo" src="img/logo-old.png" alt="Лого"&gt;
+   * ПОСЛЕ: &lt;img class="logo" src="/img/logo-old.png" data-img-editable="header_logo" alt="Лого"&gt;
+3. Фоновые изображения (data-bg-editable):
+   Если фон задан инлайн-стилем style="background-image: url(...)", добавь атрибут data-bg-editable="[уникальный_ключ]".
+   * ДО: &lt;div class="hero" style="background-image: url('assets/hero.jpg');"&gt;
+   * ПОСЛЕ: &lt;div class="hero" data-bg-editable="hero_banner" style="background-image: url('/img/hero.jpg');"&gt;
+
+#### ШАГ 4: Интеграция лид-форм (CRM и уведомления)
+Все HTML-формы на страницах сайта должны быть адаптированы для отправки лидов во встроенную CRM-систему meloddyCMS и привязанный Telegram-канал.
+
+##### Правила для форм:
+1. Тег &lt;form&gt; должен иметь атрибуты: action="/api/submit-form" и method="POST".
+2. Каждый элемент ввода данных (&lt;input&gt;, &lt;textarea&gt;, &lt;select&gt;) обязан иметь атрибут name. Значение этого атрибута должно быть человекочитаемым русским словом или фразой, так как оно напрямую транслируется в Telegram-оповещения администратора.
+3. Кнопка отправки формы должна иметь тип type="submit".
+
+##### Таблица сопоставления полей (Few-shot mapping):
+- name="name" или name="first-name" ➡️ name="Имя"
+- name="phone" или name="tel" ➡️ name="Телефон"
+- name="email" ➡️ name="Email"
+- name="message" или name="comment" ➡️ name="Сообщение"
+- name="company" ➡️ name="Компания"
+
+##### Пример нормализации формы:
+* ДО:
+  &lt;form id="contact-form"&gt;
+      &lt;input type="text" name="user_name" placeholder="Введите имя"&gt;
+      &lt;input type="tel" name="phone_number" placeholder="Ваш телефон"&gt;
+      &lt;textarea name="user_message"&gt;&lt;/textarea&gt;
+      &lt;button class="submit-btn"&gt;Отправить&lt;/button&gt;
+  &lt;/form&gt;
+* ПОСЛЕ:
+  &lt;form action="/api/submit-form" method="POST"&gt;
+      &lt;input type="text" name="Имя" placeholder="Введите имя" required&gt;
+      &lt;input type="tel" name="Телефон" placeholder="Ваш телефон" required&gt;
+      &lt;textarea name="Сообщение"&gt;&lt;/textarea&gt;
+      &lt;button type="submit" class="submit-btn"&gt;Отправить&lt;/button&gt;
+  &lt;/form&gt;
+
+#### ШАГ 5: Валидация сборки (Sanity Check)
+Перед генерацией ответа перепроверь полученный результат по чек-листу:
+1. Нет ли сломанных путей и ссылок (каждый href/src стилей, скриптов и картинок начинается со слэша /).
+2. Все ли data-атрибуты имеют валидные уникальные ключи (^[a-z0-9_]+$).
+3. Все ли формы имеют action="/api/submit-form" и method="POST", а их поля — русские атрибуты name.
+4. Весь HTML-код валиден, теги закрыты, стили/скрипты не удалены.
+
+---
+
+### ФОРМАТ ОТВЕТА
+Выведи результат строго в следующем формате:
+1. Файловая структура: Схема перемещения файлов (какие файлы куда перенесены).
+2. Сборка проекта: Полные версии измененных файлов (HTML-код страниц) без сокращений и пропусков. Не используй плейсхолдеры вида &lt;!-- тут остальной код --&gt;, выводи код целиком, чтобы его можно было скопировать.</pre>
+                        </div>
+                        <p>После обработки ИИ вы получите готовую структуру файлов. Вам останется лишь запаковать их в ZIP-архив и загрузить в CMS в один клик!</p>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+                            </section>
+
+                            <section id="dev-markup" class="docs-section">
+                                <h2>2. Разметка элементов</h2>
+                                <p>Чтобы клиент мог менять текст или картинки в Визуальном редакторе, вам нужно разметить нужные теги специальными <code>data</code>-атрибутами.</p>
+                                
+                                <h3>Редактирование текста (data-editable)</h3>
+                                <p>Добавьте атрибут <code>data-editable="уникальный_ключ"</code> к любому текстовому тегу (h1-h6, p, span, div). Ключ должен быть уникальным в рамках страницы.</p>
+                                <div class="code-block">
+                                    <pre>&lt;h1 data-editable="hero_title"&gt;Мы создаем сайты&lt;/h1&gt;
+&lt;p data-editable="hero_subtitle"&gt;Быстро и качественно&lt;/p&gt;</pre>
+                                </div>
+                                
+                                <h3>Замена изображений (data-img-editable)</h3>
+                                <p>Для тегов <code>&lt;img&gt;</code> используйте атрибут <code>data-img-editable="ключ"</code>. При клике в редакторе откроется загрузчик файлов.</p>
+                                <div class="code-block">
+                                    <pre>&lt;img data-img-editable="about_photo" src="/img/about.jpg" alt="О нас"&gt;</pre>
+                                </div>
+                                
+                                <h3>Фоновые изображения (data-bg-editable)</h3>
+                                <p>Если картинка задана через CSS свойство <code>background-image</code> (inline style), используйте <code>data-bg-editable="ключ"</code>.</p>
+                                <div class="code-block">
+                                    <pre>&lt;section data-bg-editable="main_banner" style="background-image: url('/img/banner.jpg');"&gt;
+    ...
+&lt;/section&gt;</pre>
+                                </div>
+                            </section>
+
+                            <section id="dev-forms" class="docs-section">
+                                <h2>3. Подключение форм (Лиды)</h2>
+                                <p>Для отправки заявок с сайта в Telegram-бот CMS, вам не нужно писать PHP-скрипты или настраивать SMTP. Достаточно слегка модифицировать вашу HTML-форму.</p>
+                                <ol>
+                                    <li>Форма должна отправлять данные POST-запросом на наш API-эндпоинт: <code>action="/api/submit-form"</code>.</li>
+                                    <li>Каждое поле (input) должно иметь понятный атрибут <code>name</code> (например: <code>name="Телефон"</code>, <code>name="Имя"</code>). CMS использует эти имена для формирования красивого сообщения в Telegram.</li>
+                                    <li>Форма должна перехватываться через JS, либо редиректить на страницу "Спасибо". <em>(Для базовой работы CMS сама отловит submit, если подключен наш базовый скрипт интеграции).</em></li>
+                                </ol>
+                                <div class="code-block">
+                                    <pre>&lt;form action="/api/submit-form" method="POST"&gt;
+    &lt;input type="text" name="Имя" placeholder="Ваше имя" required&gt;
+    &lt;input type="tel" name="Телефон" placeholder="Ваш телефон" required&gt;
+    &lt;button type="submit"&gt;Оставить заявку&lt;/button&gt;
+&lt;/form&gt;</pre>
+                                </div>
+                            </section>
+
+                            <section id="dev-templates" class="docs-section">
+                                <h2>4. Создание шаблонов</h2>
+                                <p>Шаблоны позволяют вам один раз собрать типовой сайт (например, квиз или лендинг для стройки), а затем создавать из него новые проекты для клиентов в один клик.</p>
+                                
+                                <h3>Как создать шаблон:</h3>
+                                <ol>
+                                    <li>Сверстайте сайт и полностью разметьте его <code>data-editable</code> атрибутами.</li>
+                                    <li>Создайте в корне папки файл <code>template.json</code> со следующим содержимым:</li>
+                                </ol>
+                                <div class="code-block">
+                                    <pre>{
+  "name": "Лендинг: Строительство домов",
+  "description": "Светлый шаблон со слайдером и формой",
+  "version": "1.0.0"
+}</pre>
+                                </div>
+                                <ol start="3">
+                                    <li>Запакуйте все файлы сайта (вместе с <code>template.json</code>) в ZIP-архив.</li>
+                                    <li>В Дашборде админки перейдите на вкладку <strong>«Шаблоны»</strong> и загрузите этот архив.</li>
+                                </ol>
+                                <p>Теперь вы сможете разворачивать этот сайт под новых клиентов моментально, просто указывая новый домен или ID проекта!</p>
+                            </section>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    
+    <script src="/js/toast.js"></script>
+    <script>
+        // Вкладки (Клиент / Разработчик)
+        const btnTabClient = document.getElementById('btnTabClient');
+        const btnTabDev = document.getElementById('btnTabDev');
+        const viewClient = document.getElementById('viewClient');
+        const viewDev = document.getElementById('viewDev');
+
+        function switchTab(target) {
+            btnTabClient.classList.remove('active');
+            btnTabDev.classList.remove('active');
+            viewClient.classList.remove('active');
+            viewDev.classList.remove('active');
+
+            if (target === 'client') {
+                btnTabClient.classList.add('active');
+                viewClient.classList.add('active');
+            } else {
+                btnTabDev.classList.add('active');
+                viewDev.classList.add('active');
+            }
+        }
+
+        btnTabClient.addEventListener('click', () => switchTab('client'));
+        btnTabDev.addEventListener('click', () => switchTab('dev'));
+
+        // Logout
+        document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login.html';
+        });
+
+        // Intersection Observer для подсветки активного пункта в оглавлении (TOC)
+        function setupIntersectionObserver(viewId) {
+            const view = document.getElementById(viewId);
+            const sections = view.querySelectorAll('.docs-section');
+            const tocLinks = view.querySelectorAll('.toc-link');
+
+            const observerOptions = {
+                root: null, // следим за вьюпортом всего окна
+                rootMargin: '-100px 0px -70% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        // Снимаем класс со всех
+                        tocLinks.forEach(link => link.classList.remove('active'));
+                        // Добавляем нужному
+                        const activeLink = view.querySelector(`.toc-link[href="#${id}"]`);
+                        if (activeLink) activeLink.classList.add('active');
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+        }
+
+        setupIntersectionObserver('viewClient');
+        setupIntersectionObserver('viewDev');
+
+        // Плавный скролл при клике на TOC
+        document.querySelectorAll('.toc-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                const mainContent = document.querySelector('.main-content');
+                
+                if (targetElement) {
+                    const topOffset = targetElement.getBoundingClientRect().top + window.scrollY - 100;
+                    window.scrollTo({
+                        top: topOffset,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

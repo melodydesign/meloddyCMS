@@ -1,0 +1,18 @@
+{
+  "step": 1386,
+  "tool": "replace_file_content",
+  "file": "index.html",
+  "target": "c:\\Users\\9\\Desktop\\meloddyCMS\\public\\index.html",
+  "args": {
+    "AllowMultiple": "false",
+    "Description": "\"Add contact section to landing page\"",
+    "EndLine": "620",
+    "Instruction": "\"Add the contact section inside main just before the footer\"",
+    "ReplacementContent": "\"        <!-- ═══════════ CONTACT ═══════════ -->\\n        <section class=\\\"land-contact\\\" id=\\\"contact\\\" style=\\\"padding: 6rem 0; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 1;\\\">\\n            <div class=\\\"land-container\\\" style=\\\"max-width: 800px; text-align: center;\\\">\\n                <h2 style=\\\"font-size: 2.5rem; margin-bottom: 1rem; color: #fff;\\\">Остались вопросы?</h2>\\n                <p style=\\\"font-size: 1.1rem; color: #a1a1aa; margin-bottom: 2.5rem; line-height: 1.6;\\\">\\n                    Есть вопросы по интеграции или работе CMS, а также пожелания? Оставьте заявку или напишите напрямую разработчику в Telegram.\\n                </p>\\n                \\n                <form id=\\\"contactForm\\\" style=\\\"display: flex; flex-direction: column; gap: 1rem; max-width: 500px; margin: 0 auto 2rem; background: rgba(10,10,10,0.8); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); text-align: left;\\\">\\n                    <div style=\\\"display: flex; flex-direction: column; gap: 0.5rem;\\\">\\n                        <label for=\\\"contactTg\\\" style=\\\"font-size: 0.9rem; color: #e4e4e7; font-weight: 500;\\\">Ваш Telegram (@username)</label>\\n                        <input type=\\\"text\\\" id=\\\"contactTg\\\" placeholder=\\\"@username\\\" required style=\\\"padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: #fff; font-size: 1rem; outline: none; transition: border-color 0.2s;\\\">\\n                    </div>\\n                    \\n                    <div style=\\\"display: flex; flex-direction: column; gap: 0.5rem;\\\">\\n                        <label for=\\\"contactQuestion\\\" style=\\\"font-size: 0.9rem; color: #e4e4e7; font-weight: 500;\\\">Ваш вопрос или пожелание</label>\\n          \n<truncated 4341 bytes>",
+    "StartLine": "615",
+    "TargetContent": "\"    </main>\"",
+    "TargetFile": "\"c:\\\\Users\\\\9\\\\Desktop\\\\meloddyCMS\\\\public\\\\index.html\"",
+    "toolAction": "\"Replacing file content\"",
+    "toolSummary": "\"Add contact section\""
+  }
+}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход и Регистрация - meloddyCMS</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/auth.css?v=4">
+</head>
+<body class="auth-page">
+
+    <!-- Animated Background Spheres -->
+    <div class="auth-sphere sphere-1"></div>
+    <div class="auth-sphere sphere-2"></div>
+    <div class="auth-sphere sphere-3"></div>
+
+    <div class="auth-wrapper">
+        <div class="auth-card" id="authCard">
+            
+            <!-- Logo & Header -->
+            <div class="auth-header">
+                <a href="/"><img src="/favicon.svg" alt="meloddyCMS"></a>
+                <h1>meloddyCMS</h1>
+                <p>Ваша платформа для управления сайтами</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="auth-tabs">
+                <div class="auth-tab-slider" id="tabSlider"></div>
+                <div class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Вход</div>
+                <div class="auth-tab" id="tabRegister" onclick="switchTab('register')">Регистрация</div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="email">Электронная почта</label>
+                    <input type="email" id="email" class="form-control" placeholder="name@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-submit btn-accent">Войти в систему</button>
+                
+                <div class="auth-divider">или</div>
+                
+                <button type="button" class="btn-submit" style="background: #FFFFFF; color: #09090B; border: 1px solid #E4E4E7;" onclick="switchTab('register')">Создать аккаунт</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form hidden">
+                
+                <!-- Role Selector -->
+                <div class="form-group">
+                    <label>Выберите вашу роль</label>
+                    <div class="role-selector">
+                        <div class="role-option active" id="roleOwner" onclick="selectRole('owner')">
+                            <div class="role-option-title">Владелец сайта</div>
+                            <div class="role-option-desc">Управлять бизнесом</div>
+                        </div>
+                        <div class="role-option" id="roleDev" onclick="selectRole('developer')">
+                            <div class="role-option-title">Разработчик</div>
+                            <div class="role-option-desc">Создавать решения</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="regRole" value="owner">
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">Электронная почта</label>
+                    <input type="email" id="regEmail" class="form-control" placeholder="name@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="regNickname">Никнейм</label>
+                    <input type="text" id="regNickname" class="form-control" placeholder="@username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="regName">Имя</label>
+                    <input type="text" id="regName" class="form-control" placeholder="Иван Иванов" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword">Пароль</label>
+                    <input type="password" id="regPassword" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Зарегистрироваться</button>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Notifications JS dependencies -->
+    <script src="/js/toast.js"></script>
+    <script src="/js/login.js"></script>
+    
+    <!-- Auth Toggle Logic -->
+    <script>
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const slider = document.getElementById('tabSlider');
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                slider.style.transform = 'translateX(0)';
+                tabLogin.classList.add('active');
+                tabRegister.classList.remove('active');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                slider.style.transform = 'translateX(100%)';
+                tabRegister.classList.add('active');
+                tabLogin.classList.remove('active');
+            }
+        }
+
+        function selectRole(role) {
+            document.getElementById('roleOwner').classList.remove('active');
+            document.getElementById('roleDev').classList.remove('active');
+            
+            if (role === 'owner') {
+                document.getElementById('roleOwner').classList.add('active');
+                document.getElementById('regRole').value = 'owner';
+            } else {
+                document.getElementById('roleDev').classList.add('active');
+                document.getElementById('regRole').value = 'developer';
+            }
+        }
+
+        // Parse query params to auto-switch tab
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'register') {
+                switchTab('register');
+            }
+        };
+
+        // Dummy register form handler since register.js might not exist yet
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(typeof showToast === 'function') {
+                showToast('Регистрация пока в разработке. Пожалуйста, используйте вход.', 'success');
+            } else {
+                alert('Регистрация отправлена!');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "step": 2164,
+  "tool": "multi_replace_file_content",
+  "file": "dashboard.html",
+  "target": "c:\\Users\\9\\Desktop\\meloddyCMS\\public\\dashboard.html",
+  "args": {
+    "Description": "\"Fix sidebar logo breaking on hover\"",
+    "Instruction": "\"Wrap the SVG logo in a .logo-icon div and remove inline styles from .sidebar-logo so it aligns properly with the CSS.\"",
+    "ReplacementChunks": "[{\"AllowMultiple\":false,\"EndLine\":19,\"ReplacementContent\":\"            <a href=\\\"/dashboard.html\\\" class=\\\"sidebar-logo\\\">\\n                <div class=\\\"logo-icon\\\">\\n                    <svg viewBox=\\\"0 0 24 24\\\" fill=\\\"none\\\" stroke=\\\"currentColor\\\" stroke-width=\\\"2\\\" style=\\\"width: 28px; height: 28px;\\\"><path d=\\\"M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\\\"/></svg>\\n                </div>\\n                <span class=\\\"logo-text\\\" style=\\\"font-weight: 700; font-size: 1.2rem; color: #fff; letter-spacing: -0.03em;\\\"><span>meloddy<span style=\\\"color: #6c5ce7\\\">CMS</span></span></span>\\n            </a>\",\"StartLine\":16,\"TargetContent\":\"            <a href=\\\"/dashboard.html\\\" class=\\\"sidebar-logo\\\" style=\\\"display: flex; align-items: center; gap: 8px;\\\">\\n                <svg viewBox=\\\"0 0 24 24\\\" fill=\\\"none\\\" stroke=\\\"#6c5ce7\\\" stroke-width=\\\"2\\\" style=\\\"width: 28px; height: 28px; flex-shrink: 0;\\\"><path d=\\\"M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\\\"/></svg>\\n                <span class=\\\"logo-text\\\" style=\\\"font-weight: 700; font-size: 1.2rem; color: #fff; letter-spacing: -0.03em;\\\"><span>meloddy<span style=\\\"color: #6c5ce7\\\">CMS</span></span></span>\\n            </a>\"}]",
+    "TargetFile": "\"c:\\\\Users\\\\9\\\\Desktop\\\\meloddyCMS\\\\public\\\\dashboard.html\"",
+    "toolAction": "\"Replacing file content\"",
+    "toolSummary": "\"Fix sidebar logo in dashboard.html\""
+  }
+}

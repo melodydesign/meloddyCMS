@@ -1,0 +1,14 @@
+{
+  "step": 1643,
+  "tool": "multi_replace_file_content",
+  "file": "index.html",
+  "target": "c:\\Users\\9\\Desktop\\meloddyCMS\\public\\index.html",
+  "args": {
+    "Description": "\"Stretch the form width and add a topic select dropdown with 7 options\"",
+    "Instruction": "\"Change container max-width to 1200px and add a select field for topics\"",
+    "ReplacementChunks": "[{\"AllowMultiple\":false,\"EndLine\":523,\"ReplacementContent\":\"        <!-- ═══════════ CONTACT (LOGIN STYLE) ═══════════ -->\\n        <section id=\\\"contact\\\" style=\\\"padding: 150px 0; position: relative; z-index: 2;\\\">\\n            <div class=\\\"land-container\\\" style=\\\"max-width: 1200px;\\\">\\n                <div style=\\\"display: flex; gap: 120px; align-items: flex-start; flex-wrap: wrap;\\\">\\n                    \\n                    <div style=\\\"flex: 1; min-width: 350px;\\\">\",\"StartLine\":518,\"TargetContent\":\"        <!-- ═══════════ CONTACT (LOGIN STYLE) ═══════════ -->\\n        <section id=\\\"contact\\\" style=\\\"padding: 150px 0; position: relative; z-index: 2;\\\">\\n            <div class=\\\"land-container\\\" style=\\\"max-width: 1000px;\\\">\\n                <div style=\\\"display: flex; gap: 80px; align-items: flex-start; flex-wrap: wrap;\\\">\\n                    \\n                    <div style=\\\"flex: 1; min-width: 300px;\\\">\"},{\"AllowMultiple\":false,\"EndLine\":568,\"ReplacementContent\":\"                                .ls-submit:hover:not(:disabled) {\\n                                    transform: scale(1.1); background: #6c5ce7; color: #fff;\\n                                    box-shadow: 0 0 30px 5px rgba(108,92,231,0.4);\\n                                }\\n                                .ls-submit:disabled { opacity: 0.5; cursor: not-allowed; }\\n                                \\n                                /* Styling for select dropdown */\\n                                select.ls-input {\\n                                    appearance: none; -webkit-appearance: none; -moz-appearance: none;\\n                                    background: transparent url(\\\"data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%24%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%209L12%2015L18%209%22%20stroke%3D%22rgba%28255%2C255%2C255%2C0.4%29\n<truncated 6369 bytes>",
+    "TargetFile": "\"c:\\\\Users\\\\9\\\\Desktop\\\\meloddyCMS\\\\public\\\\index.html\"",
+    "toolAction": "\"Replacing file content\"",
+    "toolSummary": "\"Update landing page contact form\""
+  }
+}
