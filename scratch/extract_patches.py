@@ -1,66 +1,61 @@
-import json, os
+import json
+import re
 
-TRANSCRIPT = r'C:\Users\9\.gemini\antigravity-ide\brain\b4be3967-cdb2-459c-bb1f-03a7d08af446\.system_generated\logs\transcript.jsonl'
-OUTPUT_DIR = r'c:\Users\9\Desktop\meloddyCMS\scratch\patches'
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+path = r"C:\Users\9\.gemini\antigravity-ide\brain\0a45fff8-b04b-43ef-a45c-0164b7c0057a\.system_generated\logs\transcript.jsonl"
 
-# Extract full patch data for key files
-KEY_FILES = {'index.html', 'dashboard.html', 'dashboard_v2.js', 'file-manager.html', 
-             'style.css', 'settings.html', 'profile.html', 'theme.js', 'docs.html'}
-
-with open(TRANSCRIPT, 'r', encoding='utf-8', errors='ignore') as f:
-    for line in f:
-        if 'replace_file_content' not in line:
-            continue
+with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+    for idx, line in enumerate(f):
         try:
-            obj = json.loads(line)
-        except:
+            step = json.loads(line)
+        except Exception as e:
             continue
-        step = obj.get('step_index', 0)
-        for tc in obj.get('tool_calls', []):
-            if not isinstance(tc, dict):
-                continue
-            name = tc.get('name', '')
-            if name not in ('replace_file_content', 'multi_replace_file_content'):
-                continue
-            args = tc.get('args', {})
-            target = args.get('TargetFile', '').strip('"').replace('\\\\', '\\')
-            basename = target.replace('\\', '/').split('/')[-1]
+        
+        # Если это шаг субагента, посмотрим, нет ли там отчета
+        if step.get('type') == 'BROWSER_SUBAGENT':
+            content = step.get('content', '')
+            print(f"Шаг BROWSER_SUBAGENT {step.get('step_index')}:")
+            # Поищем упоминания о товарах в отчете
+            if '25' in content or 'товаров' in content or 'sneakers' in content or 'productList' in content:
+                print("Найден потенциальный отчет субагента:")
+                # Запишем отчет в файл для изучения
+                with open(r"c:\Users\9\Desktop\meloddyCMS\scratch\subagent_report.txt", "w", encoding="utf-8") as rep_out:
+                    rep_out.write(content)
+                print("Отчет записан в subagent_report.txt")
+        
+        # Поищем вызовы инструментов
+        tool_calls = step.get('tool_calls', [])
+        for tc in tool_calls:
+            if tc.get('name') == 'browser_subagent':
+                task = tc.get('args', {}).get('Task', '')
+                print(f"Вызов browser_subagent с задачей: {task[:200]}...")
             
-            if basename not in KEY_FILES:
-                continue
-            
-            # Save full args as JSON for manual inspection
-            outpath = os.path.join(OUTPUT_DIR, f'step_{step}_{basename}.json')
-            with open(outpath, 'w', encoding='utf-8') as out:
-                json.dump({
-                    'step': step,
-                    'tool': name,
-                    'file': basename,
-                    'target': target,
-                    'args': args
-                }, out, indent=2, ensure_ascii=False)
-            
-            # Also print summary
-            if name == 'replace_file_content':
-                tc_val = args.get('TargetContent', '')
-                rc_val = args.get('ReplacementContent', '')
-                trunc_tc = '<truncated' in tc_val if tc_val else False
-                trunc_rc = '<truncated' in rc_val if rc_val else False
-                print(f"step={step} {basename}: TC={len(tc_val)}B(trunc={trunc_tc}) RC={len(rc_val)}B(trunc={trunc_rc})")
-            else:
-                chunks = args.get('ReplacementChunks', [])
-                if isinstance(chunks, list):
-                    for i, chunk in enumerate(chunks):
-                        if isinstance(chunk, dict):
-                            tc_val = chunk.get('TargetContent', '')
-                            rc_val = chunk.get('ReplacementContent', '')
-                            trunc_tc = '<truncated' in tc_val if tc_val else False
-                            trunc_rc = '<truncated' in rc_val if rc_val else False
-                            print(f"step={step} {basename} chunk{i}: TC={len(tc_val)}B(trunc={trunc_tc}) RC={len(rc_val)}B(trunc={trunc_rc})")
-                    if not chunks:
-                        print(f"step={step} {basename}: multi_replace with EMPTY chunks (truncated)")
-                else:
-                    print(f"step={step} {basename}: chunks is {type(chunks)}")
-
-print("\nPatches saved to scratch/patches/")
+            # Если это вызов javascript в браузере
+            if 'execute_browser_javascript' in tc.get('name', ''):
+                # Может быть, тут возвращаются данные?
+                pass
+        
+        # Посмотрим на ответы системы на вызовы инструментов
+        if step.get('type') == 'TOOL_RESPONSE' or 'content' in step:
+            content = step.get('content', '')
+            if 'productList' in content or 'window.productList' in content:
+                print(f"Найден TOOL_RESPONSE или content на шаге {step.get('step_index')} длиной {len(content)}")
+                # Попробуем извлечь JSON
+                # Ищем JSON-массив
+                # В логе может быть строка типа: Output:\n[{"name": ...}]
+                # Попробуем найти все вхождения `[{` и `}]`
+                for m_start in re.finditer(r'\[\s*\{\s*"name"', content):
+                    start_idx = m_start.start()
+                    # Ищем закрывающую скобку
+                    for m_end in re.finditer(r'\}\s*\]', content[start_idx:]):
+                        end_idx = start_idx + m_end.end()
+                        cand = content[start_idx:end_idx]
+                        try:
+                            data = json.loads(cand)
+                            if isinstance(data, list) and len(data) > 0:
+                                print(f"Успешно распарсен JSON массив товаров из TOOL_RESPONSE! Товаров: {len(data)}")
+                                with open(r"c:\Users\9\Desktop\meloddyCMS\scratch\sneakers.json", "w", encoding="utf-8") as out:
+                                    json.dump(data, out, indent=2, ensure_ascii=False)
+                                print("Сохранено в sneakers.json")
+                                break
+                        except Exception as ex:
+                            pass

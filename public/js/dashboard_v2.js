@@ -1166,10 +1166,30 @@ async function loadActivity(append = false) {
             
             const isDraft = item.path.endsWith('.draft.html');
             
+            // Извлекаем siteId
+            const parts = item.path.split('/');
+            const siteId = parts[0] || '';
+            const displayPath = parts.slice(1).join('/');
+            
+            // Сгенерируем цвет бейджа на основе хеша siteId
+            let hash = 0;
+            for (let i = 0; i < siteId.length; i++) {
+                hash = siteId.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const hue = Math.abs(hash % 360);
+            const badgeBg = `hsla(${hue}, 70%, 40%, 0.15)`;
+            const badgeColor = `hsla(${hue}, 90%, 75%, 1)`;
+            const badgeBorder = `hsla(${hue}, 70%, 40%, 0.3)`;
+            
+            const badgeHtml = siteId 
+                ? `<span style="background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder}; padding: 2px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; font-family: monospace;">${siteId}</span>`
+                : '';
+            
             div.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="width: 8px; height: 8px; background: ${iconColor}; border-radius: 50%;"></div>
-                    <span>Изменен файл <code style="background: var(--bg-hover); padding: 2px 4px; border-radius: 3px;">${item.path}</code></span>
+                    ${badgeHtml}
+                    <span>Изменен файл <code style="background: var(--bg-hover); padding: 2px 4px; border-radius: 3px;">${displayPath || item.path}</code></span>
                     ${isDraft ? `<button class="revert-btn" data-path="${item.path}" style="background: none; border: none; color: #ff3333; cursor: pointer; font-size: 0.75rem; text-decoration: underline; margin-left: 5px;">Отменить</button>` : ''}
                 </div>
                 <span style="color: var(--text-muted);">${timeStr}</span>

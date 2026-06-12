@@ -817,7 +817,8 @@ router.post('/api/commerce/:siteId/orders', async (req, res) => {
             productId: item.productId,
             name: item.name || 'Товар',
             price,
-            quantity: qty
+            quantity: qty,
+            image: item.image || ''
         };
     });
     
@@ -939,6 +940,66 @@ router.get('/api/commerce/:siteId/analytics', checkAuth, async (req, res) => {
         conversionRate,
         topProducts
     });
+});
+
+// Reorder products in database
+router.post('/api/commerce/:siteId/products/reorder', checkAuth, async (req, res) => {
+    const siteId = req.params.siteId;
+    if (!(await checkSiteAccess(req, siteId))) return res.status(403).json({ error: 'Доступ запрещен' });
+    
+    const { productIds } = req.body;
+    if (!productIds || !Array.isArray(productIds)) {
+        return res.status(400).json({ error: 'Неверный формат ID товаров' });
+    }
+    
+    let products = readSiteData(PRODUCTS_DIR, siteId, []);
+    
+    // Position tracking to keep non-reordered products untouched
+    const reorderSet = new Set(productIds);
+    const positions = [];
+    products.forEach((p, idx) => {
+        if (reorderSet.has(p.id)) {
+            positions.push(idx);
+        }
+    });
+    
+    const productMap = new Map(products.map(p => [p.id, p]));
+    const reorderedSublist = productIds
+        .map(id => productMap.get(id))
+        .filter(Boolean);
+    
+    positions.forEach((pos, idx) => {
+        if (idx < reorderedSublist.length) {
+            products[pos] = reorderedSublist[idx];
+        }
+    });
+    
+    writeSiteData(PRODUCTS_DIR, siteId, products);
+    res.json({ success: true });
+});
+
+// Reorder and re-parent categories in database
+router.post('/api/commerce/:siteId/categories/reorder', checkAuth, async (req, res) => {
+    const siteId = req.params.siteId;
+    if (!(await checkSiteAccess(req, siteId))) return res.status(403).json({ error: 'Доступ запрещен' });
+    
+    const { categoriesList } = req.body;
+    if (!categoriesList || !Array.isArray(categoriesList)) {
+        return res.status(400).json({ error: 'Неверный формат списка категорий' });
+    }
+    
+    let categories = readSiteData(CATEGORIES_DIR, siteId, []);
+    
+    categoriesList.forEach(item => {
+        const cat = categories.find(c => c.id === item.id);
+        if (cat) {
+            if (item.parentId !== undefined) cat.parentId = item.parentId || null;
+            if (item.sortOrder !== undefined) cat.sortOrder = parseInt(item.sortOrder) || 0;
+        }
+    });
+    
+    writeSiteData(CATEGORIES_DIR, siteId, categories);
+    res.json({ success: true });
 });
 
 router.helpers = {

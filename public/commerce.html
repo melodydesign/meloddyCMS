@@ -108,6 +108,17 @@
             position: relative;
             box-sizing: border-box;
             animation: slideInLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden; /* Prevent modal drawer from scrolling */
+        }
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 14px;
+            padding-right: 36px !important;
         }
         @keyframes slideInLeft {
             from { transform: translateX(-100%); }
@@ -379,8 +390,18 @@
 
                     <!-- Pagination -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 0 10px;">
-                        <div style="font-size: 0.85rem; color: var(--text-muted);">
-                            Показано товаров: <span id="paginatedShowingCount">0</span> из <span id="paginatedTotalCount">0</span>
+                        <div style="display: flex; align-items: center; gap: 20px;">
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">
+                                Показано товаров: <span id="paginatedShowingCount">0</span> из <span id="paginatedTotalCount">0</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted);">
+                                Отображать по:
+                                <select id="productsLimitSelect" style="padding: 4px 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main); font-size: 0.85rem; cursor: pointer; height: auto; margin: 0;">
+                                    <option value="25" selected>25</option>
+                                    <option value="100">100</option>
+                                    <option value="500">500</option>
+                                </select>
+                            </div>
                         </div>
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <button id="prevPageBtn" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.85rem;">Назад</button>
@@ -497,7 +518,7 @@
                 <button id="closeProductModalBtn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>
             </div>
             
-            <form id="productActionForm" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; gap: 24px;">
+            <form id="productActionForm" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; gap: 24px; min-height: 0;">
                 <input type="hidden" id="editingProductId" value="">
                 
                 <div style="flex: 1; overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; gap: 24px;">
@@ -535,7 +556,7 @@
 
                     <div>
                         <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px;">Категории</label>
-                        <div id="prodFormCategoriesContainer" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 4px; max-height: 180px; overflow-y: auto; box-sizing: border-box;">
+                        <div id="prodFormCategoriesContainer" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 4px; box-sizing: border-box;">
                             <!-- Dynamic category buttons -->
                         </div>
                     </div>
@@ -595,24 +616,9 @@
                         </div>
 
                         <!-- Переключатели активации предсозданных свойств -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;">
-                            <div id="btnUseColor" class="cat-btn" style="text-align: center; font-weight: 500;" onclick="toggleSystemColorBtnClick()">У товара есть цвет</div>
-                            <input type="checkbox" id="prodFormUseColor" onchange="toggleSystemColorPanel()" style="display: none;">
-                            
-                            <div id="btnUseDimensions" class="cat-btn" style="text-align: center; font-weight: 500;" onclick="toggleSystemDimensionsBtnClick()">У товара есть габариты</div>
+                        <div style="display: flex; margin-top: 8px;">
+                            <div id="btnUseDimensions" class="cat-btn" style="width: 100%; text-align: center; font-weight: 500;" onclick="toggleSystemDimensionsBtnClick()">У товара есть габариты</div>
                             <input type="checkbox" id="prodFormUseDimensions" onchange="toggleSystemDimensionsPanel()" style="display: none;">
-                        </div>
-
-                        <!-- Панель выбора цвета (показывается, если активен Цвет) -->
-                        <div id="systemColorPanel" style="display: none; background: rgba(255,255,255,0.01); border: 1px solid var(--border); border-radius: 8px; padding: 16px; align-items: center; gap: 16px;">
-                            <div style="display: flex; flex-direction: column; gap: 4px;">
-                                <label style="font-size: 0.8rem; color: var(--text-muted);">Палитра</label>
-                                <input type="color" id="prodFormColorHex" value="#000000" style="width: 60px; height: 42px; padding: 2px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-body); cursor: pointer;">
-                            </div>
-                            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
-                                <label style="font-size: 0.8rem; color: var(--text-muted);">Название цвета (например, Черный металлик)</label>
-                                <input type="text" id="prodFormColorName" placeholder="Черный..." style="width: 100%; padding: 10px 14px; background: var(--bg-body); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 0.95rem; box-sizing: border-box;">
-                            </div>
                         </div>
 
                         <!-- Панель ввода габаритов (показывается, если активны Габариты) -->
@@ -706,9 +712,8 @@
         </div>
     </div>
 
-    <!-- Order Details Modal (CRM) -->
     <div id="orderDetailsModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 10000; backdrop-filter: blur(4px);">
-        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 600px; max-width: 90%; max-height: 80vh; padding: 28px; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; position: relative; overflow-y: auto;">
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 800px; max-width: 90%; max-height: 80vh; padding: 28px; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; position: relative; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
                 <h3 id="orderDetailTitle" style="margin: 0; font-size: 1.25rem; font-weight: 700;">Детали заказа</h3>
                 <button onclick="document.getElementById('orderDetailsModal').style.display='none'" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem;">&times;</button>

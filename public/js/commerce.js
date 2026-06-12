@@ -25,9 +25,12 @@ let allCategories = [];
 let allProducts = []; // for bundles selection dropdowns
 let productSchema = { groups: [] };
 let selectedGroupId = null;
+let draggedProductId = null;
+let draggedCategoryId = null;
 
 let productsCurrentPage = 1;
 let productsTotalPages = 1;
+let productsPerPageLimit = 25;
 
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
@@ -59,6 +62,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 300);
     });
     document.getElementById('prodCategoryFilter')?.addEventListener('change', () => loadProducts(1));
+    document.getElementById('productsLimitSelect')?.addEventListener('change', (e) => {
+        productsPerPageLimit = parseInt(e.target.value) || 25;
+        loadProducts(1);
+    });
     document.getElementById('prevPageBtn')?.addEventListener('click', () => {
         if (productsCurrentPage > 1) loadProducts(productsCurrentPage - 1);
     });
@@ -94,6 +101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Schema Actions
     document.getElementById('addSchemaGroupBtn')?.addEventListener('click', addSchemaGroup);
     document.getElementById('addSchemaFieldBtn')?.addEventListener('click', addSchemaField);
+    initAutoResizeTextareas();
 
     // Initial load
     await initCommerce();
@@ -282,7 +290,7 @@ async function loadProducts(page = 1) {
     const category = document.getElementById('prodCategoryFilter').value;
     
     try {
-        const res = await fetch(`/api/commerce/${encodeURIComponent(siteId)}/products?page=${page}&limit=10&search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}`);
+        const res = await fetch(`/api/commerce/${encodeURIComponent(siteId)}/products?page=${page}&limit=${productsPerPageLimit}&search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}`);
         if (!res.ok) return;
         const data = await res.json();
 
@@ -300,6 +308,26 @@ async function loadProducts(page = 1) {
         renderProductsTable(data.products);
     } catch (err) {
         console.error('Failed to load products', err);
+    }
+}
+
+async function reorderProductsOnServer(productIds) {
+    try {
+        const res = await fetch(`/api/commerce/${encodeURIComponent(siteId)}/products/reorder`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.cookie.split('; ').find(row => row.startsWith('csrfToken='))?.split('=')[1]
+            },
+            body: JSON.stringify({ productIds })
+        });
+        if (!res.ok) {
+            showToast('Не удалось сохранить порядок товаров', 'error');
+        } else {
+            showToast('Порядок товаров сохранен', 'success');
+        }
+    } catch (e) {
+        showToast('Ошибка сети', 'error');
     }
 }
 
@@ -357,9 +385,83 @@ function renderProductsTable(products) {
             <option value="disabled" ${p.status === 'disabled' ? 'selected' : ''}>Скрыт</option>
         `;
 
+        tr.setAttribute('draggable', 'true');
+        tr.setAttribute('data-id', p.id);
+        
+        tr.addEventListener('dragstart', (e) => {
+            const handle = tr.querySelector('.product-drag-handle');
+            if (handle && !handle.contains(e.target)) {
+                e.preventDefault();
+                return;
+            }
+            draggedProductId = p.id;
+            e.dataTransfer.setData('text/plain', p.id);
+            tr.style.opacity = '0.5';
+        });
+
+        tr.addEventListener('dragend', () => {
+            tr.style.opacity = '1';
+            document.querySelectorAll('#productsTableBody tr').forEach(row => {
+                row.style.borderTop = '';
+                row.style.borderBottom = '';
+            });
+        });
+
+        tr.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const rect = tr.getBoundingClientRect();
+            const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+            document.querySelectorAll('#productsTableBody tr').forEach(row => {
+                row.style.borderTop = '';
+                row.style.borderBottom = '';
+            });
+            if (next) {
+                tr.style.borderBottom = '2px solid var(--primary)';
+            } else {
+                tr.style.borderTop = '2px solid var(--primary)';
+            }
+        });
+
+        tr.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const targetId = p.id;
+            if (draggedProductId && draggedProductId !== targetId) {
+                const loadedIds = Array.from(document.querySelectorAll('#productsTableBody tr')).map(row => row.getAttribute('data-id'));
+                const draggedIndex = loadedIds.indexOf(draggedProductId);
+                const targetIndex = loadedIds.indexOf(targetId);
+                
+                if (draggedIndex !== -1 && targetIndex !== -1) {
+                    loadedIds.splice(draggedIndex, 1);
+                    const newIndex = loadedIds.indexOf(targetId) + (draggedIndex < targetIndex ? 1 : 0);
+                    loadedIds.splice(newIndex, 0, draggedProductId);
+                    
+                    // Re-render table locally first for instant feedback
+                    const rowsMap = new Map();
+                    const parent = tr.parentNode;
+                    Array.from(parent.children).forEach(row => {
+                        rowsMap.set(row.getAttribute('data-id'), row);
+                    });
+                    
+                    loadedIds.forEach(id => {
+                        if (rowsMap.has(id)) {
+                            parent.appendChild(rowsMap.get(id));
+                        }
+                    });
+                    
+                    await reorderProductsOnServer(loadedIds);
+                }
+            }
+        });
+
         tr.innerHTML = `
             <td style="padding: 12px 20px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="product-drag-handle" style="cursor: grab; color: var(--text-muted); display: inline-flex; align-items: center; user-select: none; padding: 4px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle>
+                            <circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle>
+                        </svg>
+                    </span>
                     ${imgHtml}
                     <div>
                         <div style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">${p.name}</div>
@@ -563,21 +665,22 @@ function openAddProductModal() {
 
     // Reset system properties
     document.getElementById('prodFormBadge').value = '';
-    document.getElementById('prodFormUseColor').checked = false;
     document.getElementById('prodFormUseDimensions').checked = false;
-    document.getElementById('prodFormColorHex').value = '#000000';
-    document.getElementById('prodFormColorName').value = '';
     document.getElementById('prodFormLength').value = '';
     document.getElementById('prodFormWidth').value = '';
     document.getElementById('prodFormHeight').value = '';
     document.getElementById('prodFormWeight').value = '';
-    toggleSystemColorPanel();
     toggleSystemDimensionsPanel();
 
     if (typeof initCustomSelect === 'function') {
         initCustomSelect(document.getElementById('prodFormType'));
         initCustomSelect(document.getElementById('prodFormStatus'));
     }
+
+    setTimeout(() => {
+        document.getElementById('prodFormDescription')?.resizeSelf?.();
+        document.getElementById('prodFormImages')?.resizeSelf?.();
+    }, 50);
     
     document.getElementById('productModal').style.display = 'flex';
 }
@@ -643,11 +746,6 @@ async function openEditProductModal(productId) {
         // Populate system properties
         document.getElementById('prodFormBadge').value = p.badge || '';
         
-        const useColor = !!(p.colorHex || p.colorName);
-        document.getElementById('prodFormUseColor').checked = useColor;
-        document.getElementById('prodFormColorHex').value = p.colorHex || '#000000';
-        document.getElementById('prodFormColorName').value = p.colorName || '';
-        
         const useDim = !!(p.length || p.width || p.height || p.weight);
         document.getElementById('prodFormUseDimensions').checked = useDim;
         document.getElementById('prodFormLength').value = p.length || '';
@@ -655,13 +753,17 @@ async function openEditProductModal(productId) {
         document.getElementById('prodFormHeight').value = p.height || '';
         document.getElementById('prodFormWeight').value = p.weight || '';
         
-        toggleSystemColorPanel();
         toggleSystemDimensionsPanel();
 
         if (typeof initCustomSelect === 'function') {
             initCustomSelect(document.getElementById('prodFormType'));
             initCustomSelect(document.getElementById('prodFormStatus'));
         }
+
+        setTimeout(() => {
+            document.getElementById('prodFormDescription')?.resizeSelf?.();
+            document.getElementById('prodFormImages')?.resizeSelf?.();
+        }, 50);
 
         document.getElementById('productModal').style.display = 'flex';
     } catch (err) {
@@ -906,7 +1008,6 @@ async function saveProduct(e) {
         });
     });
 
-    const useColor = document.getElementById('prodFormUseColor').checked;
     const useDim = document.getElementById('prodFormUseDimensions').checked;
 
     const payload = {
@@ -930,8 +1031,8 @@ async function saveProduct(e) {
         bundleItems,
         variants,
         badge: document.getElementById('prodFormBadge').value.trim(),
-        colorHex: useColor ? document.getElementById('prodFormColorHex').value : null,
-        colorName: useColor ? document.getElementById('prodFormColorName').value.trim() : null,
+        colorHex: null,
+        colorName: null,
         length: useDim ? (parseFloat(document.getElementById('prodFormLength').value) || null) : null,
         width: useDim ? (parseFloat(document.getElementById('prodFormWidth').value) || null) : null,
         height: useDim ? (parseFloat(document.getElementById('prodFormHeight').value) || null) : null,
@@ -1029,9 +1130,11 @@ async function loadTrashBin() {
                 <td style="padding: 10px; font-weight: 500; color: var(--text-main);">${p.name}</td>
                 <td style="padding: 10px; font-family: monospace;">${p.sku || '—'}</td>
                 <td style="padding: 10px; font-size: 0.85rem; color: var(--text-muted);">${delDate}</td>
-                <td style="padding: 10px; text-align: right;">
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem; color: var(--primary); border-color: rgba(0, 112, 243, 0.2); margin-right: 6px;" onclick="restoreProduct('${p.id}')">Восстановить</button>
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.2);" onclick="forceDeleteProduct('${p.id}')">Навсегда</button>
+                <td style="padding: 10px;">
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; white-space: nowrap;">
+                        <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem; color: var(--primary); border-color: rgba(0, 112, 243, 0.2); margin: 0;" onclick="restoreProduct('${p.id}')">Восстановить</button>
+                        <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem; color: #ef4444; border-color: rgba(239, 68, 68, 0.2); margin: 0 0 0 8px !important;" onclick="forceDeleteProduct('${p.id}')">Навсегда</button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -1146,6 +1249,66 @@ function renderCategoriesTree(tree) {
         const div = document.createElement('div');
         div.className = `category-tree-item category-level-${cat.level}`;
         
+        div.setAttribute('draggable', 'true');
+        div.setAttribute('data-id', cat.id);
+        
+        div.addEventListener('dragstart', (e) => {
+            const handle = div.querySelector('.category-drag-handle');
+            if (handle && !handle.contains(e.target)) {
+                e.preventDefault();
+                return;
+            }
+            draggedCategoryId = cat.id;
+            e.dataTransfer.setData('text/plain', cat.id);
+            div.style.opacity = '0.5';
+        });
+
+        div.addEventListener('dragend', () => {
+            div.style.opacity = '1';
+            document.querySelectorAll('.category-tree-item').forEach(item => {
+                item.style.borderTop = '';
+                item.style.borderBottom = '';
+                item.style.background = '';
+            });
+        });
+
+        div.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const rect = div.getBoundingClientRect();
+            const relativeY = e.clientY - rect.top;
+            const height = rect.height;
+            
+            document.querySelectorAll('.category-tree-item').forEach(item => {
+                item.style.borderTop = '';
+                item.style.borderBottom = '';
+                item.style.background = '';
+            });
+            
+            if (relativeY < height * 0.3) {
+                div.style.borderTop = '2px solid var(--primary)';
+            } else if (relativeY > height * 0.7) {
+                div.style.borderBottom = '2px solid var(--primary)';
+            } else {
+                div.style.background = 'rgba(0, 112, 243, 0.05)';
+            }
+        });
+
+        div.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const targetId = cat.id;
+            if (!draggedCategoryId || draggedCategoryId === targetId) return;
+            
+            const rect = div.getBoundingClientRect();
+            const relativeY = e.clientY - rect.top;
+            const height = rect.height;
+            
+            let dropPosition = 'inside';
+            if (relativeY < height * 0.3) dropPosition = 'before';
+            else if (relativeY > height * 0.7) dropPosition = 'after';
+            
+            await handleCategoryDrop(draggedCategoryId, targetId, dropPosition);
+        });
+        
         let iconHtml = '';
         if (cat.level === 1) {
             iconHtml = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 8px; color: var(--primary); display: inline-block; vertical-align: middle;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
@@ -1154,14 +1317,20 @@ function renderCategoriesTree(tree) {
         } else if (cat.level === 3) {
             iconHtml = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 8px; color: var(--text-muted); display: inline-block; vertical-align: middle;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>`;
         }
-
+ 
         // Кнопка быстрого добавления подкатегории (только для уровней 1 и 2)
         const addSubBtn = cat.level < 3 
             ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem; border-radius: 6px; color: var(--primary); border-color: rgba(0, 112, 243, 0.2); display: flex; align-items: center;" onclick="quickAddSubcategory('${cat.id}')" title="Добавить подкатегорию">+</button>`
             : '';
-
+ 
         div.innerHTML = `
             <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="category-drag-handle" style="cursor: grab; color: var(--text-muted); display: inline-flex; align-items: center; user-select: none; padding: 4px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle>
+                        <circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle>
+                    </svg>
+                </span>
                 ${iconHtml}
                 <span style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">${cat.name}</span>
             </div>
@@ -1173,6 +1342,39 @@ function renderCategoriesTree(tree) {
         `;
         container.appendChild(div);
     });
+
+    const rootDropZone = document.createElement('div');
+    rootDropZone.style.border = '2px dashed var(--border)';
+    rootDropZone.style.borderRadius = '8px';
+    rootDropZone.style.padding = '12px';
+    rootDropZone.style.textAlign = 'center';
+    rootDropZone.style.color = 'var(--text-muted)';
+    rootDropZone.style.fontSize = '0.85rem';
+    rootDropZone.style.marginTop = '12px';
+    rootDropZone.style.cursor = 'default';
+    rootDropZone.textContent = 'Перетащите сюда категорию, чтобы сделать ее корневой';
+    
+    rootDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        rootDropZone.style.borderColor = 'var(--primary)';
+        rootDropZone.style.background = 'rgba(0, 112, 243, 0.02)';
+    });
+    
+    rootDropZone.addEventListener('dragleave', () => {
+        rootDropZone.style.borderColor = 'var(--border)';
+        rootDropZone.style.background = '';
+    });
+    
+    rootDropZone.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        rootDropZone.style.borderColor = 'var(--border)';
+        rootDropZone.style.background = '';
+        if (draggedCategoryId) {
+            await handleCategoryDrop(draggedCategoryId, 'root', 'inside');
+        }
+    });
+    
+    container.appendChild(rootDropZone);
     list.appendChild(container);
 }
 
@@ -1670,13 +1872,30 @@ async function viewOrderDetails(orderId) {
 
         let itemsListHtml = '';
         o.items.forEach(item => {
+            let imgUrl = item.image || '';
+            if (!imgUrl && allProducts.length > 0) {
+                const matchedProduct = allProducts.find(p => p.id === item.productId);
+                if (matchedProduct && matchedProduct.images && matchedProduct.images.length > 0) {
+                    imgUrl = matchedProduct.images[0];
+                }
+            }
+            if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('/') && !imgUrl.startsWith('data:')) {
+                imgUrl = `/real-site/${siteId}/${imgUrl}`;
+            }
+            const imgHtml = imgUrl 
+                ? `<img src="${imgUrl}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: contain; background: #ffffff; border: 1px solid var(--border); padding: 2px; flex-shrink: 0;" onerror="this.style.display='none'">` 
+                : `<div style="width: 50px; height: 50px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); flex-shrink: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>`;
+
             itemsListHtml += `
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
-                    <div>
-                        <div style="font-weight: 500; font-size: 0.9rem; color: var(--text-main);">${item.name}</div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted);">Код: ${item.productId || '—'}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 8px; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        ${imgHtml}
+                        <div>
+                            <div style="font-weight: 500; font-size: 0.9rem; color: var(--text-main);">${item.name}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Код: ${item.productId || '—'}</div>
+                        </div>
                     </div>
-                    <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">${item.quantity} шт. x ${item.price} ₽</div>
+                    <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main); white-space: nowrap;">${item.quantity} шт. x ${item.price} ₽</div>
                 </div>
             `;
         });
@@ -2382,26 +2601,8 @@ function addVariantPropertyBlock(propName = '', valuesList = []) {
 }
 window.addVariantPropertyBlock = addVariantPropertyBlock;
 
-window.toggleSystemColorPanel = function() {
-    const chk = document.getElementById('prodFormUseColor');
-    const panel = document.getElementById('systemColorPanel');
-    const btn = document.getElementById('btnUseColor');
-    if (chk && panel) {
-        panel.style.display = chk.checked ? 'flex' : 'none';
-        if (btn) {
-            if (chk.checked) btn.classList.add('active');
-            else btn.classList.remove('active');
-        }
-    }
-};
-
-window.toggleSystemColorBtnClick = function() {
-    const chk = document.getElementById('prodFormUseColor');
-    if (chk) {
-        chk.checked = !chk.checked;
-        toggleSystemColorPanel();
-    }
-};
+window.toggleSystemColorPanel = function() {};
+window.toggleSystemColorBtnClick = function() {};
 
 window.toggleSystemDimensionsPanel = function() {
     const chk = document.getElementById('prodFormUseDimensions');
@@ -2423,3 +2624,146 @@ window.toggleSystemDimensionsBtnClick = function() {
         toggleSystemDimensionsPanel();
     }
 };
+
+function initAutoResizeTextareas() {
+    const textareas = [
+        document.getElementById('prodFormDescription'),
+        document.getElementById('prodFormImages')
+    ];
+    textareas.forEach(ta => {
+        if (!ta) return;
+        const resize = () => {
+            ta.style.height = 'auto';
+            ta.style.height = (ta.scrollHeight + 2) + 'px';
+        };
+        ta.addEventListener('input', resize);
+        ta.resizeSelf = resize;
+    });
+}
+
+function getCategoryPathDepth(parentId) {
+    if (!parentId || parentId === 'root') return 0;
+    let depth = 0;
+    let currentId = parentId;
+    const visited = new Set();
+    while (currentId) {
+        if (visited.has(currentId)) break;
+        visited.add(currentId);
+        const parent = allCategories.find(c => c.id === currentId);
+        if (parent) {
+            depth++;
+            currentId = parent.parentId;
+        } else {
+            break;
+        }
+    }
+    return depth;
+}
+
+function getCategorySubtreeHeight(catId) {
+    const children = allCategories.filter(c => c.parentId === catId);
+    if (children.length === 0) return 0;
+    let maxHeight = 0;
+    children.forEach(child => {
+        const h = getCategorySubtreeHeight(child.id);
+        if (h > maxHeight) {
+            maxHeight = h;
+        }
+    });
+    return 1 + maxHeight;
+}
+
+async function handleCategoryDrop(draggedId, targetId, position) {
+    if (draggedId === targetId) return;
+
+    let newParentId = null;
+    if (position === 'inside') {
+        newParentId = targetId === 'root' ? null : targetId;
+    } else {
+        const targetCat = allCategories.find(c => c.id === targetId);
+        if (targetCat) {
+            newParentId = targetCat.parentId;
+        }
+    }
+
+    // Проверка на циклы
+    let current = newParentId;
+    while (current) {
+        if (current === draggedId) {
+            showToast('Невозможно переместить категорию в саму себя или в свои подкатегории', 'error');
+            return;
+        }
+        const parent = allCategories.find(c => c.id === current);
+        current = parent ? parent.parentId : null;
+    }
+
+    // Валидация вложенности (макс. 3 уровня)
+    const nextLevelOfDragged = getCategoryPathDepth(newParentId) + 1;
+    const maxSubtreeLevel = nextLevelOfDragged + getCategorySubtreeHeight(draggedId);
+    if (maxSubtreeLevel > 3) {
+        showToast('Максимальная глубина вложенности категорий — 3 уровня', 'error');
+        return;
+    }
+
+    // Формируем список сиблингов нового родителя
+    let siblings = allCategories
+        .filter(c => c.parentId === newParentId && c.id !== draggedId)
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+
+    const draggedCat = allCategories.find(c => c.id === draggedId);
+    if (!draggedCat) return;
+
+    draggedCat.parentId = newParentId;
+
+    if (position === 'inside') {
+        siblings.push(draggedCat);
+    } else {
+        const targetIndex = siblings.findIndex(c => c.id === targetId);
+        if (targetIndex === -1) {
+            siblings.push(draggedCat);
+        } else if (position === 'before') {
+            siblings.splice(targetIndex, 0, draggedCat);
+        } else if (position === 'after') {
+            siblings.splice(targetIndex + 1, 0, draggedCat);
+        }
+    }
+
+    const updates = [];
+    siblings.forEach((c, idx) => {
+        c.sortOrder = idx;
+        updates.push({
+            id: c.id,
+            parentId: c.parentId,
+            sortOrder: c.sortOrder
+        });
+    });
+
+    if (!updates.some(u => u.id === draggedId)) {
+        updates.push({
+            id: draggedId,
+            parentId: newParentId,
+            sortOrder: siblings.indexOf(draggedCat)
+        });
+    }
+
+    try {
+        const res = await fetch(`/api/commerce/${encodeURIComponent(siteId)}/categories/reorder`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.cookie.split('; ').find(row => row.startsWith('csrfToken='))?.split('=')[1]
+            },
+            body: JSON.stringify({ categoriesList: updates })
+        });
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || 'Ошибка при изменении порядка категорий');
+        }
+        showToast('Порядок категорий сохранен', 'success');
+        await loadCategories();
+    } catch (e) {
+        console.error(e);
+        showToast(e.message || 'Ошибка сети', 'error');
+        await loadCategories();
+    }
+}
