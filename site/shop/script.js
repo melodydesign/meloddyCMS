@@ -323,9 +323,51 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCart();
     }
 
-    // ==========================================================================
-    // QUICK VIEW MODAL LOGIC (Tilda-style variants selection & specs render)
-    // ==========================================================================
+    // Color map helper for rendering custom variant color pills
+    const colorHexes = {
+        "черный": "#000000",
+        "белый": "#FFFFFF",
+        "оранжевый": "#FFA500",
+        "синий": "#2563EB",
+        "красный": "#EF4444",
+        "зеленый": "#10B981",
+        "серый": "#71717A",
+        "желтый": "#FBBF24",
+        "бежевый": "#F5F5DC",
+        "розовый": "#EC4899",
+        "коричневый": "#78350F",
+        "хаки": "#808000",
+        "фиолетовый": "#8B5CF6",
+        "бордовый": "#991B1B",
+        "темно-синий": "#1E3A8A",
+        "голубой": "#60A5FA",
+        "кремовый": "#FFFDD0",
+        "оливковый": "#556B2F"
+    };
+
+    function getHexForColorName(name) {
+        if (!name) return "#808080";
+        const key = name.toLowerCase().trim();
+        return colorHexes[key] || "#808080";
+    }
+
+    // Tabs click handler in Quick View using event delegation
+    document.addEventListener('click', (e) => {
+        const tabBtn = e.target.closest('.detail-tab-btn');
+        if (tabBtn) {
+            const tabId = tabBtn.getAttribute('data-tab');
+            const parentModal = tabBtn.closest('#product-detail-modal');
+            if (parentModal) {
+                parentModal.querySelectorAll('.detail-tab-btn').forEach(btn => btn.classList.remove('active'));
+                parentModal.querySelectorAll('.detail-tab-pane').forEach(pane => pane.classList.remove('active'));
+                
+                tabBtn.classList.add('active');
+                const pane = parentModal.querySelector(`#${tabId}`);
+                if (pane) pane.classList.add('active');
+            }
+        }
+    });
+
     let currentSelectedVariants = {};
 
     window.openProductDetailModal = function(product, brandName) {
@@ -350,20 +392,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('detail-description').textContent = product.description || 'Описание отсутствует.';
 
-        // Render system properties (Color & Dimensions)
-        const sysPropsContainer = document.getElementById('detail-system-properties');
-        if (sysPropsContainer) {
-            sysPropsContainer.innerHTML = '';
-            let sysHtml = '';
+        // Render system properties inside Specs Tab (Dimensions & Weight)
+        const dimsBlock = document.getElementById('detail-dimensions-block');
+        if (dimsBlock) {
+            dimsBlock.innerHTML = '';
+            let dimsHtml = '';
             
             if (product.colorHex) {
                 const colorLabel = product.colorName 
                     ? `<span class="detail-sys-value">${product.colorName}</span>` 
                     : '';
-                sysHtml += `
-                    <div class="detail-sys-row">
-                        <span class="detail-sys-label">Цвет:</span>
-                        <div class="detail-color-indicator" style="background-color: ${product.colorHex};"></div>
+                dimsHtml += `
+                    <div class="detail-sys-row" style="margin-bottom: 8px;">
+                        <span class="detail-sys-label">Основной цвет:</span>
+                        <div class="detail-color-indicator" style="background-color: ${product.colorHex}; margin-right: 8px;"></div>
                         ${colorLabel}
                     </div>
                 `;
@@ -372,24 +414,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (product.length || product.width || product.height || product.weight) {
                 const dims = [product.length || '0', product.width || '0', product.height || '0'].join(' × ') + ' см';
                 const weight = product.weight ? `${product.weight} кг` : '—';
-                sysHtml += `
-                    <div class="detail-sys-row" style="align-items: flex-start; flex-direction: column; gap: 6px;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <span class="detail-sys-label">Габариты:</span>
-                            <span class="detail-sys-value">${dims}</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <span class="detail-sys-label">Вес в упак.:</span>
-                            <span class="detail-sys-value">${weight}</span>
-                        </div>
+                dimsHtml += `
+                    <div class="detail-sys-row" style="margin-bottom: 8px;">
+                        <span class="detail-sys-label">Габариты (Д×Ш×В):</span>
+                        <span class="detail-sys-value">${dims}</span>
+                    </div>
+                    <div class="detail-sys-row">
+                        <span class="detail-sys-label">Вес в упаковке:</span>
+                        <span class="detail-sys-value">${weight}</span>
                     </div>
                 `;
             }
             
-            sysPropsContainer.innerHTML = sysHtml;
-            sysPropsContainer.style.display = sysHtml ? 'flex' : 'none';
+            dimsBlock.innerHTML = dimsHtml;
         }
-
 
         // Gallery & Previews
         const mainImg = document.getElementById('detail-main-img');
@@ -399,21 +437,26 @@ document.addEventListener('DOMContentLoaded', () => {
         mainImg.src = mainImageSrc;
         
         previewsContainer.innerHTML = '';
-        if (product.images && product.images.length > 1) {
+        if (product.images && product.images.length > 0) {
             product.images.forEach((img, idx) => {
                 const preview = document.createElement('img');
                 preview.className = 'gallery-preview-img' + (idx === 0 ? ' active' : '');
                 preview.src = img;
-                preview.addEventListener('click', () => {
+                
+                // Переключение по клику и по ховеру (mouseenter)
+                const activatePreview = () => {
                     previewsContainer.querySelectorAll('.gallery-preview-img').forEach(p => p.classList.remove('active'));
                     preview.classList.add('active');
                     mainImg.src = img;
-                });
+                };
+                
+                preview.addEventListener('click', activatePreview);
+                preview.addEventListener('mouseenter', activatePreview);
                 previewsContainer.appendChild(preview);
             });
         }
 
-        // Tilda-style variants grouping & render
+        // Tilda-style variants grouping & render with custom color buttons
         const variantsContainer = document.getElementById('detail-variants');
         variantsContainer.innerHTML = '';
         
@@ -436,10 +479,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 const optionsDiv = document.createElement('div');
                 optionsDiv.className = 'detail-variant-options';
 
+                const isColorGroup = groupName.toLowerCase() === 'цвет';
+
                 groups[groupName].forEach((opt, idx) => {
                     const btn = document.createElement('button');
-                    btn.className = 'detail-variant-btn' + (idx === 0 ? ' active' : '');
-                    btn.textContent = opt.value;
+                    
+                    if (isColorGroup) {
+                        btn.className = 'variant-color-btn' + (idx === 0 ? ' active' : '');
+                        // Ищем HEX-код цвета
+                        const hex = getHexForColorName(opt.value);
+                        btn.style.backgroundColor = hex;
+                        btn.title = opt.value;
+                    } else {
+                        btn.className = 'variant-size-btn' + (idx === 0 ? ' active' : '');
+                        btn.textContent = opt.value;
+                    }
                     
                     // Pre-select first options
                     if (idx === 0) {
@@ -447,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     btn.addEventListener('click', () => {
-                        optionsDiv.querySelectorAll('.detail-variant-btn').forEach(b => b.classList.remove('active'));
+                        optionsDiv.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
                         currentSelectedVariants[groupName] = opt.value;
 
@@ -466,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Find and activate thumbnail matching this image if exists
                             const thumbs = previewsContainer.querySelectorAll('.gallery-preview-img');
                             thumbs.forEach(t => {
-                                if (t.src.includes(opt.image)) {
+                                if (t.src.includes(opt.image) || resolvedUrl.includes(t.src.split('/').pop())) {
                                     thumbs.forEach(other => other.classList.remove('active'));
                                     t.classList.add('active');
                                 }
@@ -486,7 +540,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Specs table load from Custom Fields
-        const specsWrapper = document.getElementById('detail-specs-wrapper');
         const specsTable = document.getElementById('detail-specs-table');
         specsTable.innerHTML = '';
         
@@ -506,22 +559,25 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        if (hasSpecs) {
-            specsWrapper.style.display = 'block';
-        } else {
-            specsWrapper.style.display = 'none';
+        // Active first tab
+        document.querySelectorAll('.detail-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.detail-tab-pane').forEach(pane => pane.classList.remove('active'));
+        
+        const firstTabBtn = document.querySelector('.detail-tab-btn[data-tab="tab-desc"]');
+        const firstTabPane = document.getElementById('tab-desc');
+        if (firstTabBtn && firstTabPane) {
+            firstTabBtn.classList.add('active');
+            firstTabPane.classList.add('active');
         }
 
         // Bind Add to Cart button inside modal
         const addToCartModalBtn = document.getElementById('detail-add-to-cart-btn');
-        // Recreate button to clear previous event listeners
         const newAddBtn = addToCartModalBtn.cloneNode(true);
         addToCartModalBtn.parentNode.replaceChild(newAddBtn, addToCartModalBtn);
 
         newAddBtn.addEventListener('click', () => {
             addCartItem(product, { ...currentSelectedVariants });
             closeProductDetailModal();
-            // Open cart for better feedback
             openCartModal();
         });
 

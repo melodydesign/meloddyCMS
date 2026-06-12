@@ -1,0 +1,62 @@
+[
+  {
+    "id": "cat_shoes",
+    "name": "Все кроссовки",
+    "parentId": null,
+    "sortOrder": 0
+  },
+  {
+    "id": "cat_reebok",
+    "name": "Reebok",
+    "parentId": null,
+    "sortOrder": 1
+  },
+  {
+    "id": "cat_puma",
+    "name": "Puma",
+    "parentId": null,
+    "sortOrder": 2
+  },
+  {
+    "id": "cat_adidas",
+    "name": "Adidas",
+    "parentId": null,
+    "sortOrder": 3
+  },
+  {
+    "id": "cat_nike",
+    "name": "Nike",
+    "parentId": null,
+    "sortOrder": 4
+  },
+  {
+    "id": "cat_new_balance",
+    "name": "New Balance",
+    "parentId": null,
+    "sortOrder": 5
+  },
+  {
+    "id": "cat_asics",
+    "name": "Asics",
+    "parentId": null,
+    "sortOrder": 6
+  },
+  {
+    "id": "cat_vans",
+    "name": "Vans",
+    "parentId": null,
+    "sortOrder": 7
+  },
+  {
+    "id": "cat_converse",
+    "name": "Converse",
+    "parentId": null,
+    "sortOrder": 8
+  },
+  {
+    "id": "cat_dc_shoes",
+    "name": "Dc Shoes",
+    "parentId": null,
+    "sortOrder": 9
+  }
+]
