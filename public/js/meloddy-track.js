@@ -77,9 +77,11 @@
     }, true);
 
     document.addEventListener('submit', (e) => {
+        const form = e.target;
+        if (form.id === 'checkout-form') return;
+        
         e.preventDefault();
         console.log('Form submit intercepted!');
-        const form = e.target;
         const formData = new FormData(form);
         const data = {};
         formData.forEach((value, key) => {

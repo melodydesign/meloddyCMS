@@ -49,6 +49,7 @@ app.use(require('./src/routes/analytics'));
 app.use(require('./src/routes/backups'));
 app.use(require('./src/routes/files'));
 app.use(require('./src/routes/admin'));
+app.use(require('./src/routes/commerce'));
 
 // Serve real sites statically with draft fallback & tracking injections
 app.use('/real-site', async (req, res, next) => {

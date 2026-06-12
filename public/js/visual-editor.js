@@ -1,5 +1,8 @@
 const urlParams = new URLSearchParams(window.location.search);
 let activeSite = urlParams.get('site') || localStorage.getItem('activeSite');
+if (activeSite === 'null' || activeSite === 'undefined') {
+    activeSite = null;
+}
 
 if (!activeSite) {
     window.location.href = '/dashboard.html';
@@ -9,6 +12,41 @@ if (!activeSite) {
 
 const iframe = document.getElementById('preview');
 iframe.src = `/real-site/${activeSite}/index.html?preview=true`;
+
+let commerceFields = [];
+
+async function loadCommerceFieldsForEditor() {
+    try {
+        const res = await fetch(`/api/commerce/${encodeURIComponent(activeSite)}/schemas`);
+        if (res.ok) {
+            const data = await res.json();
+            const fields = [
+                { id: 'name', name: 'Название товара' },
+                { id: 'price', name: 'Цена' },
+                { id: 'oldPrice', name: 'Старая цена' },
+                { id: 'sku', name: 'Артикул' },
+                { id: 'description', name: 'Описание' },
+                { id: 'stock', name: 'Остаток' }
+            ];
+            
+            // Add custom fields
+            if (data.groups) {
+                data.groups.forEach(g => {
+                    if (g.fields) {
+                        g.fields.forEach(f => {
+                            fields.push({ id: `customFields.${f.id}`, name: `${f.name} (${g.name})` });
+                        });
+                    }
+                });
+            }
+            commerceFields = fields;
+        }
+    } catch (e) {
+        console.error('Failed to load schemas for editor:', e);
+    }
+}
+
+loadCommerceFieldsForEditor();
 
 const saveBtn = document.getElementById('saveBtn');
 const saveIndicator = document.getElementById('saveIndicator');
@@ -48,8 +86,6 @@ const seoKeywordsInput = document.getElementById('seoKeywordsInput');
 const ogTitleInput = document.getElementById('ogTitleInput');
 const ogDescInput = document.getElementById('ogDescInput');
 const ogImageInput = document.getElementById('ogImageInput');
-const startAuditBtn = document.getElementById('startAuditBtn');
-const auditResults = document.getElementById('auditResults');
 const closeSeoModal = document.getElementById('closeSeoModal');
 const saveSeoModal = document.getElementById('saveSeoModal');
 
@@ -155,6 +191,37 @@ function updateStyle(el, property, value) {
 
 function updateStylesPanel(el) {
     currentSelectedEl = el;
+    
+    // Сбросить активный класс у всех слоев и карточек блоков
+    document.querySelectorAll('.layer-editable-item, .layer-block-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    if (el) {
+        // Если выбран редактируемый элемент
+        const id = el.getAttribute('data-editable') || el.getAttribute('data-img-editable');
+        if (id) {
+            const layerItem = document.querySelector(`.layer-editable-item[data-for-id="${id}"]`);
+            if (layerItem) {
+                layerItem.classList.add('active');
+                // Подсветить родительскую карточку блока
+                const parentBlockItem = layerItem.closest('.layer-block-item');
+                if (parentBlockItem) {
+                    parentBlockItem.classList.add('active');
+                }
+            }
+        } else {
+            // Если выбран сам блок (по data-block-id)
+            const blockId = el.getAttribute('data-block-id');
+            if (blockId) {
+                const blockItem = document.querySelector(`.layer-block-item[data-block-id="${blockId}"]`);
+                if (blockItem) {
+                    blockItem.classList.add('active');
+                }
+            }
+        }
+    }
+
     const stylesContainer = document.getElementById('stylesContainer');
     if (!stylesContainer) return;
     
@@ -339,9 +406,46 @@ function updateStylesPanel(el) {
             <textarea id="styleCustomCSS" style="width: 100%; height: 80px; padding: 0.4rem; background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-main); resize: vertical; font-family: monospace;">${currentInlineStyle}</textarea>
         </div>
     `;
+
+    // Section: Data Binding
+    const isEditable = el.hasAttribute('data-editable') || el.hasAttribute('data-img-editable');
+    if (isEditable) {
+        const boundField = el.getAttribute('data-bind-product') || '';
+        let optionsStr = `<option value="">Не связано</option>`;
+        if (Array.isArray(commerceFields)) {
+            commerceFields.forEach(f => {
+                optionsStr += `<option value="${f.id}" ${f.id === boundField ? 'selected' : ''}>${f.name}</option>`;
+            });
+        }
+        
+        html += `
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px;">Интеграция с товаром</div>
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px;">Связать с полем товара</label>
+                <select id="bindProductSelector" style="width: 100%; padding: 0.4rem; background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-main); cursor: pointer;">
+                    ${optionsStr}
+                </select>
+            </div>
+        `;
+    }
     
     stylesContainer.innerHTML = html;
     stylesContainer.querySelectorAll('select').forEach(sel => initCustomSelect(sel));
+    
+    // Bind product data binding selector
+    const bindProductSelector = document.getElementById('bindProductSelector');
+    if (bindProductSelector) {
+        bindProductSelector.addEventListener('change', () => {
+            saveState();
+            const val = bindProductSelector.value;
+            if (val) {
+                el.setAttribute('data-bind-product', val);
+            } else {
+                el.removeAttribute('data-bind-product');
+            }
+            markUnsaved();
+        });
+    }
     
     // Event Listeners
     const styleColor = document.getElementById('styleColor');
@@ -565,70 +669,20 @@ function rgbToHex(rgb) {
            ("0" + parseInt(match[3],10).toString(16)).slice(-2);
 }
 
-function initCustomSelect(selectEl) {
-    if (!selectEl) return;
-    
-    const existingWrapper = selectEl.parentNode.querySelector('.custom-select-wrapper');
-    if (existingWrapper) {
-        existingWrapper.remove();
-    }
 
-    selectEl.style.display = 'none';
-    
-    const wrapper = document.createElement('div');
-    wrapper.className = 'custom-select-wrapper';
-    wrapper.style.width = selectEl.style.width || 'auto';
-    
-    const trigger = document.createElement('div');
-    trigger.className = 'custom-select-trigger';
-    trigger.innerHTML = `<span>${selectEl.options[selectEl.selectedIndex]?.text || ''}</span>`;
-    
-    const optionsContainer = document.createElement('div');
-    optionsContainer.className = 'custom-select-options';
-    
-    Array.from(selectEl.options).forEach(opt => {
-        const item = document.createElement('div');
-        item.className = 'custom-select-option';
-        if (opt.value === selectEl.value) item.classList.add('selected');
-        item.textContent = opt.text;
-        item.setAttribute('data-value', opt.value);
-        
-        item.addEventListener('click', () => {
-            selectEl.value = opt.value;
-            trigger.querySelector('span').textContent = opt.text;
-            optionsContainer.classList.remove('show');
-            
-            optionsContainer.querySelectorAll('.custom-select-option').forEach(el => el.classList.remove('selected'));
-            item.classList.add('selected');
-            
-            selectEl.dispatchEvent(new Event('change'));
-        });
-        
-        optionsContainer.appendChild(item);
-    });
-    
-    trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        optionsContainer.classList.toggle('show');
-        document.querySelectorAll('.custom-select-options').forEach(el => {
-            if (el !== optionsContainer) el.classList.remove('show');
-        });
-    });
-    
-    document.addEventListener('click', () => {
-        optionsContainer.classList.remove('show');
-    });
-    
-    wrapper.appendChild(trigger);
-    wrapper.appendChild(optionsContainer);
-    selectEl.parentNode.insertBefore(wrapper, selectEl);
-}
 
 async function loadPages() {
     try {
         const res = await fetch(`/api/pages?site=${activeSite}`);
-        if (res.status === 401 || res.status === 403) {
+        if (res.status === 401) {
             window.location.href = '/login.html';
+            return;
+        }
+        if (res.status === 403) {
+            showToast('Доступ к сайту запрещен', 'error');
+            setTimeout(() => {
+                window.location.href = '/dashboard.html';
+            }, 1500);
             return;
         }
         const pages = await res.json();
@@ -704,11 +758,9 @@ function populateLayers(doc) {
         const blockName = block.tagName.toLowerCase() + '#' + blockId;
         
         const blockItem = document.createElement('div');
-        blockItem.style.marginBottom = '10px';
-        blockItem.style.padding = '5px';
-        blockItem.style.borderRadius = '4px';
-        blockItem.style.cursor = 'move';
+        blockItem.className = 'layer-block-item';
         blockItem.setAttribute('draggable', 'true');
+        blockItem.setAttribute('data-block-id', blockId);
         
         blockItem.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', blockId);
@@ -746,35 +798,31 @@ function populateLayers(doc) {
         });
         
         const blockTitle = document.createElement('div');
-        blockTitle.style.fontWeight = '600';
-        blockTitle.style.fontSize = '0.85rem';
-        blockTitle.style.cursor = 'pointer';
-        blockTitle.style.display = 'flex';
-        blockTitle.style.alignItems = 'center';
-        blockTitle.style.gap = '5px';
+        blockTitle.className = 'layer-block-title';
         blockTitle.innerHTML = `
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
             ${blockName}
         `;
         
-        blockTitle.addEventListener('click', () => {
+        blockTitle.addEventListener('click', (e) => {
+            e.stopPropagation();
             block.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
             // Highlight in preview
             block.style.outline = '2px solid var(--primary)';
             block.style.outlineOffset = '2px';
             setTimeout(() => { block.style.outline = 'none'; }, 2000);
+            
+            updateStylesPanel(block);
         });
         
         const blockActions = document.createElement('div');
-        blockActions.style.display = 'flex';
-        blockActions.style.gap = '5px';
+        blockActions.className = 'layer-block-actions';
         
         // Duplicate button
         const dupBtn = document.createElement('button');
         dupBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
         dupBtn.className = 'btn btn-outline';
-        dupBtn.style.padding = '4px';
         dupBtn.title = 'Дублировать';
         dupBtn.onclick = (e) => {
             e.stopPropagation();
@@ -802,9 +850,7 @@ function populateLayers(doc) {
         // Delete button
         const delBtn = document.createElement('button');
         delBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"></path></svg>';
-        delBtn.className = 'btn btn-outline';
-        delBtn.style.padding = '4px';
-        delBtn.style.color = '#ff3333';
+        delBtn.className = 'btn btn-outline layer-btn-delete';
         delBtn.title = 'Удалить';
         delBtn.onclick = (e) => {
             e.stopPropagation();
@@ -818,9 +864,7 @@ function populateLayers(doc) {
         };
         
         const titleRow = document.createElement('div');
-        titleRow.style.display = 'flex';
-        titleRow.style.justifyContent = 'space-between';
-        titleRow.style.alignItems = 'center';
+        titleRow.className = 'layer-block-header';
         titleRow.appendChild(blockTitle);
         titleRow.appendChild(blockActions);
         
@@ -829,32 +873,39 @@ function populateLayers(doc) {
         
         blockItem.appendChild(titleRow);
         
-        const childrenContainer = document.createElement('div');
-        childrenContainer.style.paddingLeft = '15px';
-        childrenContainer.style.marginTop = '5px';
-        childrenContainer.style.fontSize = '0.8rem';
-        childrenContainer.style.color = 'var(--text-muted)';
+        const blockChildren = document.createElement('div');
+        blockChildren.className = 'layer-block-children';
         
-        const editables = block.querySelectorAll('[data-editable]');
+        const editables = block.querySelectorAll('[data-editable], [data-img-editable]');
         editables.forEach(editable => {
             const elItem = document.createElement('div');
-            elItem.style.padding = '3px 0';
-            elItem.style.cursor = 'pointer';
-            elItem.style.whiteSpace = 'nowrap';
-            elItem.style.overflow = 'hidden';
-            elItem.style.textOverflow = 'ellipsis';
+            elItem.className = 'layer-editable-item';
+            
+            const isImg = editable.hasAttribute('data-img-editable');
+            const id = editable.getAttribute('data-editable') || editable.getAttribute('data-img-editable');
+            elItem.setAttribute('data-for-id', id);
             
             const tagName = editable.tagName.toLowerCase();
-            let icon = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>';
+            let icon = '';
+            let textSnippet = '';
             
-            if (tagName.startsWith('h')) {
-                icon = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M6 12h12"></path></svg>';
+            if (isImg) {
+                icon = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
+                textSnippet = editable.getAttribute('alt') || editable.getAttribute('src')?.split('/').pop() || 'Изображение';
+            } else {
+                icon = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>';
+                if (tagName.startsWith('h')) {
+                    icon = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M6 12h12"></path></svg>';
+                }
+                textSnippet = editable.innerText || '';
             }
             
+            if (textSnippet.length > 15) textSnippet = textSnippet.substring(0, 15) + '...';
+            
             elItem.innerHTML = `
-                <span style="display: inline-flex; align-items: center; gap: 3px;">
+                <span style="display: inline-flex; align-items: center; gap: 4px;">
                     ${icon}
-                    <span style="color: var(--text-main);">${tagName}</span>: ${editable.innerText.substring(0, 15)}...
+                    <span style="color: var(--text-main); font-weight: 500;">${tagName}</span>: ${textSnippet}
                 </span>
             `;
             
@@ -864,10 +915,10 @@ function populateLayers(doc) {
                 editable.click();
             });
             
-            childrenContainer.appendChild(elItem);
+            blockChildren.appendChild(elItem);
         });
         
-        blockItem.appendChild(childrenContainer);
+        blockItem.appendChild(blockChildren);
         layersContainer.appendChild(blockItem);
     });
 }
@@ -1285,8 +1336,8 @@ if (uploadImgBtn) {
         fileInput.onchange = async () => {
             if (fileInput.files.length > 0) {
                 const formData = new FormData();
-                formData.append('files', fileInput.files[0]);
                 formData.append('path', 'img'); 
+                formData.append('files', fileInput.files[0]);
                 
                 showToast('Загрузка изображения...', 'default');
                 try {
@@ -1490,46 +1541,7 @@ document.querySelectorAll('.seo-tab').forEach(tab => {
     };
 });
 
-// SEO Audit Logic
-if (startAuditBtn) {
-    startAuditBtn.onclick = () => {
-        const doc = iframe.contentDocument;
-        const results = [];
-        
-        // 1. Title
-        const title = doc.querySelector('title');
-        if (!title || !title.innerText.trim()) results.push({ type: 'error', text: 'Отсутствует заголовок <title>' });
-        else if (title.innerText.length > 70) results.push({ type: 'warning', text: 'Заголовок <title> слишком длинный (>70 симв.)' });
-        else results.push({ type: 'success', text: 'Заголовок <title> в порядке' });
 
-        // 2. Description
-        const desc = doc.querySelector('meta[name="description"]');
-        if (!desc || !desc.content.trim()) results.push({ type: 'error', text: 'Отсутствует мета-тег description' });
-        else if (desc.content.length > 160) results.push({ type: 'warning', text: 'Description слишком длинный (>160 симв.)' });
-        else results.push({ type: 'success', text: 'Description в порядке' });
-
-        // 3. Headings
-        const h1s = doc.querySelectorAll('h1');
-        if (h1s.length === 0) results.push({ type: 'error', text: 'На странице нет заголовка H1' });
-        else if (h1s.length > 1) results.push({ type: 'warning', text: 'На странице больше одного H1 (' + h1s.length + ')' });
-        else results.push({ type: 'success', text: 'H1 найден' });
-
-        // 4. Images Alt
-        const imgs = doc.querySelectorAll('img');
-        let missingAlt = 0;
-        imgs.forEach(img => { if (!img.alt.trim()) missingAlt++; });
-        if (missingAlt > 0) results.push({ type: 'warning', text: 'У ' + missingAlt + ' изображений отсутствует атрибут ALT' });
-        else results.push({ type: 'success', text: 'Все изображения имеют ALT' });
-
-        // Render Results
-        auditResults.innerHTML = results.map(r => `
-            <div style="padding: 8px; margin-bottom: 5px; border-radius: 4px; background: ${r.type === 'error' ? 'rgba(255,0,0,0.1)' : r.type === 'warning' ? 'rgba(255,165,0,0.1)' : 'rgba(0,128,0,0.1)'}; border: 1px solid ${r.type === 'error' ? '#ff4d4d' : r.type === 'warning' ? '#ffa500' : '#2ecc71'}; font-size: 0.85rem;">
-                <span style="margin-right: 5px;">${r.type === 'error' ? '❌' : r.type === 'warning' ? '⚠️' : '✅'}</span>
-                ${r.text}
-            </div>
-        `).join('');
-    };
-}
 
 // SEO Open / Save
 if (seoBtn) {

@@ -5,30 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Настройки - meloddyCMS</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="stylesheet" href="/css/style.css?v=10">
-    <script src="/js/theme.js"></script>
-    <script>
-        fetch('/api/check-auth').then(res => {
-            if (!res.ok) window.location.href = '/login.html';
-        }).catch(() => window.location.href = '/login.html');
-    </script>
-    <style>
-        .custom-select-wrapper { display: inline-block; position: relative; }
-        .custom-select-trigger { background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.875rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-width: 200px; transition: border-color 0.2s, box-shadow 0.2s; position: relative; }
-        .custom-select-trigger:after { content: ''; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid var(--text-muted); position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-        .custom-select-trigger:hover { border-color: var(--primary); }
-        .custom-select-options { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); margin-top: 4px; max-height: 200px; overflow-y: auto; width: 100%; position: absolute; top: 100%; left: 0; z-index: 10000; display: none; }
-        .custom-select-options.show { display: block; }
-        .custom-select-option { padding: 0.5rem 0.75rem; font-size: 0.875rem; color: var(--text-main); cursor: pointer; transition: background 0.2s; }
-        .custom-select-option:hover { background: var(--bg-hover); }
-        .custom-select-option.selected { background: var(--bg-active); color: var(--primary); }
-    </style>
+    <link rel="stylesheet" href="/css/style.css?v=20">
+    <script src="/js/theme.js?v=20"></script>
+
 </head>
 <body>
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-nav-drawer" id="mobileNavDrawer">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div style="font-weight: 700; font-size: 1.2rem; color: var(--text-main);">Menu</div>
+            <button id="closeMobileMenuBtn" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+        <a href="/dashboard.html" class="topbar-nav-item">Дашборд</a>
+        <a href="/settings.html" class="topbar-nav-item active">Настройки</a>
+        <a href="/docs.html" class="topbar-nav-item">База знаний</a>
+        <a href="/admin.html" id="adminMobileLink" class="topbar-nav-item" style="display: none;">Админка</a>
+    </div>
+
     <div class="app-layout">
         <!-- Top Bar Navigation -->
         <header class="topbar">
             <div class="topbar-left">
+                <button class="topbar-burger" id="mobileMenuBtn" style="margin-right: 12px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
                 <a href="/dashboard.html" class="topbar-logo">
                     <img src="/favicon.svg" alt="meloddyCMS">
                     <span>meloddy<span class="text-gradient">CMS</span></span>
@@ -47,27 +47,27 @@
                 <a href="#" id="logoutBtn" class="topbar-icon-btn" title="Выйти">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 </a>
+                <div class="topbar-user" id="topbarUserInfo" style="display: none;">
+                    <div class="topbar-avatar" id="topbarUserAvatar">U</div>
+                    <div class="topbar-user-info">
+                        <span class="topbar-user-name" id="topbarUserName">Загрузка...</span>
+                        <span class="topbar-user-email" id="topbarUserEmail">...</span>
+                    </div>
+                </div>
             </div>
         </header>
-        <script>
-            fetch('/api/check-auth').then(res => res.json()).then(data => {
-                if(data && data.user && data.user.role === 'admin') {
-                    document.getElementById('adminSidebarLink').style.display = 'inline-flex';
-                }
-            }).catch(()=>{});
-        </script>
 
         <!-- Main Content -->
         <main class="main-content">
             <div class="dashboard-container">
                 <h1>Настройки системы</h1>
+                <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Управление личным профилем, внешним видом панели и кодом разработчика</p>
 
                 <!-- Settings Tabs -->
-                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border);">
-                    <button id="tabSettingsProfile" onclick="switchSettingsTab('profile')" style="padding: 10px 20px; background: none; border: none; border-bottom: 2px solid var(--primary); color: var(--text-main); font-weight: 600; cursor: pointer;">Профиль</button>
-                    <button id="tabSettingsAppearance" onclick="switchSettingsTab('appearance')" style="padding: 10px 20px; background: none; border: none; color: var(--text-muted); font-weight: 600; cursor: pointer;">Внешний вид</button>
-                    
-                    <button id="tabSettingsDeveloper" onclick="switchSettingsTab('developer')" style="padding: 10px 20px; background: none; border: none; color: var(--text-muted); font-weight: 600; cursor: pointer;">Разработчик</button>
+                <div class="segmented-tabs" style="margin-bottom: 2rem; width: fit-content;">
+                    <button id="tabSettingsProfile" class="segmented-tab active" onclick="switchSettingsTab('profile')">Профиль</button>
+                    <button id="tabSettingsAppearance" class="segmented-tab" onclick="switchSettingsTab('appearance')">Внешний вид</button>
+                    <button id="tabSettingsDeveloper" class="segmented-tab" onclick="switchSettingsTab('developer')">Разработчик</button>
                 </div>
 
                 <div id="sectionSettingsProfile" style="display: block;">
@@ -105,7 +105,7 @@
                         
                         <div>
                             <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Контактный Email</label>
-                            <input type="email" id="emailInput" value="" style="background: var(--bg-body); width: 100%;">
+                            <input type="email" id="emailInput" value="" style="background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem; color: var(--text-main); width: 100%;">
                         </div>
                         
                         <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
@@ -148,7 +148,7 @@
 
                     </div>
 
-                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; margin-top: 2rem;">
+                <div id="devClientCard" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; margin-top: 2rem; display: none;">
                     <h3 style="margin-bottom: 1.5rem;">Привязка к разработчику</h3>
                     <div id="devClientSection" style="display: none;">
                             
@@ -221,70 +221,60 @@
                 </div>
                 
                 <div id="sectionSettingsDeveloper" style="display: none;">
-                    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2rem;">
-                        <h3 style="margin-bottom: 1.5rem;">Привязка к разработчику</h3>
-                        
-                        <div id="devLoadingState" style="color: var(--text-muted); margin-bottom: 1rem;">Загрузка...</div>
-                        
-                        <!-- Client View -->
-                        <!-- Developer View -->
-                        <div id="devDeveloperSection" style="display: none;">
-                            <div id="devCodeContainer" style="display: none;">
-                                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Ваш код разработчика (передайте клиентам):</p>
-                                <div style="display: flex; gap: 10px; max-width: 400px; align-items: center;">
-                                    <input type="text" id="myDevCode" readonly style="flex: 1; padding: 0.5rem; background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-main); font-family: monospace; font-size: 1.1rem; text-align: center;">
-                                    <button onclick="navigator.clipboard.writeText(document.getElementById('myDevCode').value); typeof showToast === 'function' ? showToast('Скопировано!') : alert('Скопировано!')" class="btn btn-outline">Копировать</button>
-                                </div>
-                            </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; align-items: start;">
+                        <!-- Left Column: Dev Panel -->
+                        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem;">
+                            <h3 style="margin-top: 0; margin-bottom: 1.5rem;">Привязка к разработчику</h3>
                             
+                            <div id="devLoadingState" style="color: var(--text-muted); margin-bottom: 1rem;">Загрузка...</div>
                             
-                            <div id="devSitesContainer" style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
-                                <h4 style="margin-bottom: 1rem;">Привязанные сайты</h4>
-                                <div id="devSitesList" style="display: flex; flex-direction: column; gap: 10px; color: var(--text-muted); font-size: 0.9rem;">
-                                    Загрузка сайтов...
+                            <div id="devDeveloperSection" style="display: none;">
+                                <div id="devCodeContainer" style="display: none;">
+                                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Ваш код разработчика (передайте клиентам):</p>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <input type="text" id="myDevCode" readonly style="flex: 1; padding: 10px 14px; background: var(--bg-body); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); font-family: monospace; font-size: 1.1rem; text-align: center; outline: none;">
+                                        <button onclick="navigator.clipboard.writeText(document.getElementById('myDevCode').value); typeof showToast === 'function' ? showToast('Скопировано!') : alert('Скопировано!')" class="btn btn-outline" style="padding: 10px 18px;">Копировать</button>
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div id="devGenerateContainer" style="display: none; margin-top: 1rem;">
-                                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">У вас еще нет кода разработчика. Сгенерируйте его!</p>
-                                <div style="display: flex; gap: 10px; max-width: 400px;">
-                                    <input type="text" id="customDevCodeInput" placeholder="DEV-..." style="flex: 1; padding: 0.5rem; background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-main);">
-                                    <button id="devGenerateBtn" class="btn">Сгенерировать</button>
+                                
+                                <div id="devGenerateContainer" style="display: none; margin-top: 1rem;">
+                                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">У вас еще нет кода разработчика. Сгенерируйте его!</p>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input type="text" id="customDevCodeInput" placeholder="DEV-..." style="flex: 1; padding: 10px 14px; background: var(--bg-body); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); outline: none;">
+                                        <button id="devGenerateBtn" class="btn" style="padding: 10px 18px;">Сгенерировать</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
+                        <!-- Right Column: Assigned Sites -->
+                        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem;">
+                            <h3 style="margin-top: 0; margin-bottom: 1.5rem;">Привязанные сайты</h3>
+                            <div id="devSitesList" style="display: flex; flex-direction: column; gap: 10px; color: var(--text-muted); font-size: 0.9rem;">
+                                Загрузка сайтов...
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <script>
                     function switchSettingsTab(tab) {
-                        document.getElementById('tabSettingsProfile').style.color = 'var(--text-muted)';
-                        document.getElementById('tabSettingsProfile').style.borderBottom = 'none';
-                        document.getElementById('tabSettingsAppearance').style.color = 'var(--text-muted)';
-                        document.getElementById('tabSettingsAppearance').style.borderBottom = 'none';
-                        
-                        
-                        document.getElementById('tabSettingsDeveloper').style.color = 'var(--text-muted)';
-                        document.getElementById('tabSettingsDeveloper').style.borderBottom = 'none';
+                        const tabs = ['tabSettingsProfile', 'tabSettingsAppearance', 'tabSettingsDeveloper'];
+                        tabs.forEach(tId => {
+                            const el = document.getElementById(tId);
+                            if (el) el.classList.remove('active');
+                        });
                         
                         document.getElementById('sectionSettingsProfile').style.display = 'none';
                         document.getElementById('sectionSettingsAppearance').style.display = 'none';
-                        
                         document.getElementById('sectionSettingsDeveloper').style.display = 'none';
                         
-                        if (tab === 'profile') {
-                            document.getElementById('tabSettingsProfile').style.color = 'var(--text-main)';
-                            document.getElementById('tabSettingsProfile').style.borderBottom = '2px solid var(--primary)';
-                            document.getElementById('sectionSettingsProfile').style.display = 'block';
-                        } else if (tab === 'appearance') {
-                            document.getElementById('tabSettingsAppearance').style.color = 'var(--text-main)';
-                            document.getElementById('tabSettingsAppearance').style.borderBottom = '2px solid var(--primary)';
-                            document.getElementById('sectionSettingsAppearance').style.display = 'block';
-                        } else if (tab === 'developer') {
-                            document.getElementById('tabSettingsDeveloper').style.color = 'var(--text-main)';
-                            document.getElementById('tabSettingsDeveloper').style.borderBottom = '2px solid var(--primary)';
-                            document.getElementById('sectionSettingsDeveloper').style.display = 'block';
+                        const activeEl = document.getElementById('tabSettings' + tab.charAt(0).toUpperCase() + tab.slice(1));
+                        if (activeEl) activeEl.classList.add('active');
+                        
+                        document.getElementById('sectionSettings' + tab.charAt(0).toUpperCase() + tab.slice(1)).style.display = 'block';
+                        
+                        if (tab === 'developer') {
                             loadDeveloperStatus();
                         }
                     }
@@ -469,21 +459,41 @@
                 if (authData.user.role === 'developer' || authData.user.role === 'admin') {
                     fetch('/api/sites')
                         .then(r => r.json())
-                        .then(sites => {
+                        .then(data => {
                             const list = document.getElementById('devSitesList');
                             if (!list) return;
-                            if (sites.length === 0) {
-                                list.innerHTML = '<div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm);">Нет привязанных сайтов.</div>';
+                            
+                            let devSites = [];
+                            if (data.clients) {
+                                data.clients.forEach(c => {
+                                    if (c.sites) {
+                                        c.sites.forEach(s => {
+                                            s.clientName = c.name;
+                                            devSites.push(s);
+                                        });
+                                    }
+                                });
+                            }
+                            
+                            if (devSites.length === 0) {
+                                list.innerHTML = '<div style="padding: 1.5rem; background: rgba(255,255,255,0.01); border: 1px dashed var(--border); border-radius: var(--radius-lg); color: var(--text-muted); text-align: center;">Нет привязанных сайтов.</div>';
                             } else {
-                                list.innerHTML = sites.map(s => `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius-sm);">
-                                        <div style="font-weight: 600; color: var(--text-main);">${s.name} <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal; margin-left: 10px;">${s.domain || ''}</span></div>
-                                        <div style="font-size: 0.8rem; padding: 3px 8px; border-radius: 10px; background: ${s.status === 'online' ? 'rgba(0,204,102,0.1)' : 'rgba(255,255,255,0.1)'}; color: ${s.status === 'online' ? '#00cc66' : 'var(--text-muted)'};">${s.status === 'online' ? 'Активен' : 'Оффлайн'}</div>
+                                list.innerHTML = devSites.map(s => `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-body); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 8px;">
+                                        <div>
+                                            <div style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">${s.name}</div>
+                                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Клиент: ${s.clientName} ${s.domain ? `· ${s.domain}` : ''}</div>
+                                        </div>
+                                        <div style="font-size: 0.8rem; padding: 4px 10px; border-radius: var(--radius-sm); background: ${s.status === 'online' ? 'rgba(0,204,102,0.1)' : 'rgba(255,255,255,0.05)'}; color: ${s.status === 'online' ? '#00cc66' : 'var(--text-muted)'}; border: 1px solid ${s.status === 'online' ? 'rgba(0,204,102,0.2)' : 'var(--border)'};">${s.status === 'online' ? 'Онлайн' : 'Оффлайн'}</div>
                                     </div>
                                 `).join('');
                             }
                         })
-                        .catch(e => console.error(e));
+                        .catch(e => {
+                            console.error(e);
+                            const list = document.getElementById('devSitesList');
+                            if (list) list.innerHTML = '<div style="color: var(--primary);">Ошибка загрузки сайтов</div>';
+                        });
                 }
 
                 if (authData.user.role === 'developer' || authData.user.role === 'admin') {
@@ -502,7 +512,12 @@
                 if (authData.user.role === 'client') {
                     const devTabBtn = document.getElementById('tabSettingsDeveloper');
                     if (devTabBtn) devTabBtn.style.display = 'none';
+                    const devClientCard = document.getElementById('devClientCard');
+                    if (devClientCard) devClientCard.style.display = 'block';
                     if (clientSec) clientSec.style.display = 'block';
+                } else {
+                    const devClientCard = document.getElementById('devClientCard');
+                    if (devClientCard) devClientCard.style.display = 'none';
                 }
             } catch (e) {
                 console.error(e);
@@ -602,4 +617,4 @@
     </div>
 
 </body>
-</html>
+</html>

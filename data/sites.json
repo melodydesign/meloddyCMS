@@ -10,5 +10,9 @@
   "samuraVPS": {
     "owner": 3,
     "createdAt": "2026-05-27T23:33:45.396Z"
+  },
+  "shop": {
+    "owner": 3,
+    "createdAt": "2026-06-11T14:00:00.000Z"
   }
 }

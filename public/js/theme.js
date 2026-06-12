@@ -33,17 +33,177 @@ function updateToggleIcon(theme) {
     }
 }
 
-// Init theme on load — light is default (:root = light)
+// Init theme on load — light is default
 setTheme(getTheme());
 
-// Bind toggle if exists
+// Bind events on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('themeToggleBtn');
-    if (btn) {
-        btn.addEventListener('click', (e) => {
+    // 1. Theme toggle binding
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) {
+        themeBtn.addEventListener('click', (e) => {
             e.preventDefault();
             toggleTheme();
         });
     }
     updateToggleIcon(getTheme());
+
+    // 2. Mobile Menu Logic (Burger and Drawer)
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const closeMobileMenuBtn = document.getElementById('closeMobileMenuBtn');
+    const mobileNavDrawer = document.getElementById('mobileNavDrawer');
+    
+    if (mobileMenuBtn && mobileNavDrawer) {
+        mobileMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            mobileNavDrawer.classList.add('open');
+        });
+    }
+    if (closeMobileMenuBtn && mobileNavDrawer) {
+        closeMobileMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            mobileNavDrawer.classList.remove('open');
+        });
+    }
+    // Close mobile menu drawer when clicking outside
+    document.addEventListener('click', (e) => {
+        if (mobileNavDrawer && mobileNavDrawer.classList.contains('open')) {
+            if (!mobileNavDrawer.contains(e.target) && e.target !== mobileMenuBtn && !mobileMenuBtn.contains(e.target)) {
+                mobileNavDrawer.classList.remove('open');
+            }
+        }
+    });
+
+    // 3. User Authorization check and Profile capsule populate
+    // Run authentication only on pages that contain topbar navigation menu
+    const hasTopbar = document.querySelector('.topbar');
+    if (hasTopbar) {
+        fetch('/api/check-auth')
+            .then(res => {
+                if (!res.ok) {
+                    if (!window.location.pathname.includes('login.html')) {
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Unauthorized');
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.authenticated && data.user) {
+                    // Show admin link in desktop and mobile menus if admin
+                    if (data.user.role === 'admin') {
+                        const adminLink = document.getElementById('adminSidebarLink');
+                        if (adminLink) adminLink.style.display = 'inline-flex';
+                        const adminMobileLink = document.getElementById('adminMobileLink');
+                        if (adminMobileLink) adminMobileLink.style.display = 'flex';
+                    }
+                    
+                    // Populate user profile capsule
+                    const userName = data.user.studioName || data.user.username;
+                    const uNameEl = document.getElementById('topbarUserName');
+                    if (uNameEl) uNameEl.textContent = userName;
+                    const uEmailEl = document.getElementById('topbarUserEmail');
+                    if (uEmailEl) uEmailEl.textContent = data.user.email || '';
+                    const uAvatarEl = document.getElementById('topbarUserAvatar');
+                    if (uAvatarEl) uAvatarEl.textContent = userName.charAt(0).toUpperCase();
+                    
+                    const userCapsule = document.getElementById('topbarUserInfo');
+                    if (userCapsule) {
+                        userCapsule.style.display = 'flex';
+                        userCapsule.addEventListener('click', () => {
+                            window.location.href = '/settings.html';
+                        });
+                    }
+                }
+            })
+            .catch((err) => {
+                console.warn('Auth check skipped/failed:', err.message);
+                if (!window.location.pathname.includes('login.html')) {
+                    window.location.href = '/login.html';
+                }
+            });
+    }
+
+    // Auto initialize custom selects
+    setTimeout(() => {
+        document.querySelectorAll('select').forEach(sel => {
+            if (typeof initCustomSelect === 'function') initCustomSelect(sel);
+        });
+    }, 100);
 });
+
+function initCustomSelect(selectEl) {
+    if (!selectEl) return;
+    if (selectEl.classList.contains('no-custom-select')) return;
+    
+    const existingWrapper = selectEl.parentNode.querySelector('.custom-select-wrapper');
+    if (existingWrapper) {
+        existingWrapper.remove();
+    }
+
+    selectEl.style.display = 'none';
+    
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-select-wrapper';
+    wrapper.style.width = selectEl.style.width || '100%';
+    if (selectEl.style.flex) {
+        wrapper.style.flex = selectEl.style.flex;
+        if (!selectEl.style.width) {
+            wrapper.style.width = 'auto';
+        }
+    }
+    
+    const trigger = document.createElement('div');
+    trigger.className = 'custom-select-trigger';
+    trigger.innerHTML = `<span>${selectEl.options[selectEl.selectedIndex]?.text || ''}</span>`;
+    
+    const optionsContainer = document.createElement('div');
+    optionsContainer.className = 'custom-select-options';
+    
+    Array.from(selectEl.options).forEach(opt => {
+        const item = document.createElement('div');
+        item.className = 'custom-select-option';
+        if (opt.value === selectEl.value) item.classList.add('selected');
+        item.textContent = opt.text;
+        item.setAttribute('data-value', opt.value);
+        
+        item.addEventListener('click', () => {
+            selectEl.value = opt.value;
+            trigger.querySelector('span').textContent = opt.text;
+            optionsContainer.classList.remove('show');
+            wrapper.classList.remove('open');
+            
+            optionsContainer.querySelectorAll('.custom-select-option').forEach(el => el.classList.remove('selected'));
+            item.classList.add('selected');
+            
+            selectEl.dispatchEvent(new Event('change'));
+        });
+        
+        optionsContainer.appendChild(item);
+    });
+    
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = optionsContainer.classList.contains('show');
+        
+        document.querySelectorAll('.custom-select-options').forEach(el => {
+            el.classList.remove('show');
+            el.parentNode.classList.remove('open');
+        });
+        
+        if (!isOpen) {
+            optionsContainer.classList.add('show');
+            wrapper.classList.add('open');
+        }
+    });
+    
+    document.addEventListener('click', () => {
+        optionsContainer.classList.remove('show');
+        wrapper.classList.remove('open');
+    });
+    
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(optionsContainer);
+    selectEl.parentNode.insertBefore(wrapper, selectEl);
+}
+window.initCustomSelect = initCustomSelect;

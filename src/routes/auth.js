@@ -35,7 +35,8 @@ router.post('/api/developer/generate-code', checkAuth, async (req, res) => {
     let finalCode = '';
     if (customCode) {
         // Validate custom code uniqueness
-        const codeExists = users.some(u => u.developerCode === customCode);
+        const customLower = customCode.toLowerCase();
+        const codeExists = users.some(u => u.developerCode && u.developerCode.toLowerCase() === customLower);
         if (codeExists) {
             return res.status(400).json({ error: 'Этот код уже используется другим разработчиком' });
         }
@@ -60,7 +61,7 @@ router.post('/api/developer/generate-code', checkAuth, async (req, res) => {
 
 // Register
 router.post('/api/register', async (req, res) => {
-    const { username, password, role, email } = req.body;
+    const { username, password, role, email, name } = req.body;
     if (!username || !password || password.length < 6 || !email) {
         return res.status(400).json({ error: 'Заполните все поля (минимум 6 символов для пароля)' });
     }
@@ -85,6 +86,7 @@ router.post('/api/register', async (req, res) => {
     const newUser = {
         id: newId,
         username,
+        name: name || username,
         email,
         password: hashedPassword,
         role: reqRole,
@@ -98,7 +100,8 @@ router.post('/api/register', async (req, res) => {
     while (!isUnique) {
         const randomDigits = Math.floor(100000 + Math.random() * 900000); // 6 digits
         newDevCode = `dev-${randomDigits}`;
-        if (!users.some(u => u.developerCode === newDevCode)) {
+        const newDevLower = newDevCode.toLowerCase();
+        if (!users.some(u => u.developerCode && u.developerCode.toLowerCase() === newDevLower)) {
             isUnique = true;
         }
     }
@@ -292,11 +295,11 @@ router.post('/api/user/request-bind', checkAuth, async (req, res) => {
         if (clientIndex === -1) return res.status(404).json({ error: 'Пользователь не найден' });
         const client = users[clientIndex];
 
-        if (client.developerAccess && client.developerAccess.code === developerCode) {
+        if (client.developerAccess && client.developerAccess.code && client.developerAccess.code.toLowerCase() === developerCode.toLowerCase()) {
             return res.status(400).json({ error: 'Вы уже привязаны к этому разработчику' });
         }
 
-        const developer = users.find(u => u.developerCode === developerCode);
+        const developer = users.find(u => u.developerCode && u.developerCode.toLowerCase() === developerCode.toLowerCase());
         if (!developer) return res.status(404).json({ error: 'Разработчик с таким кодом не найден' });
 
         const requests = await readJson(REQUESTS_FILE);

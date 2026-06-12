@@ -7,7 +7,7 @@
     
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/landing.css?v=1">
+    <link rel="stylesheet" href="/css/landing.css?v=14">
 </head>
 <body>
 
@@ -43,8 +43,8 @@
         
         <div class="container fade-in-up" style="position: relative; z-index: 2;">
             <div class="hero-subtitle">Всё необходимое в одном месте</div>
-            <h1>Создавайте и управляйте<br>сайтами <span class="text-gradient">быстрее</span></h1>
-            <p>Платформа meloddyCMS помогает собирать лендинги, управлять заявками и подключать ИИ для оптимизации рутины — в едином чистом интерфейсе.</p>
+            <h1>Управляйте вашими<br>сайтами <span class="text-gradient">быстрее</span></h1>
+            <p>Платформа meloddyCMS позволяет легко управлять контентом готовых сайтов, обрабатывать заявки клиентов и настраивать интеграции — в едином чистом интерфейсе.</p>
             
             <div class="hero-cta">
                 <a href="/login.html?mode=register" class="btn btn-accent">Начать бесплатно</a>
@@ -350,6 +350,10 @@
             <div class="security-layout fade-in-up">
                 <!-- Left: Big Visual Card -->
                 <div class="security-visual-card">
+                    <div class="status-badge" style="position: absolute; top: 24px; left: 24px; z-index: 5;">
+                        <span class="status-dot"></span>
+                        защита активна
+                    </div>
                     <div class="shield-container">
                         <svg class="main-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     </div>
@@ -358,21 +362,27 @@
                 <!-- Right: Steps Cards -->
                 <div class="security-steps">
                     <div class="step-card">
-                        <div class="step-icon">1</div>
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                        </div>
                         <div class="step-content">
                             <strong>Сервера в РФ</strong>
                             <span>Полное соответствие ФЗ-152 о персональных данных.</span>
                         </div>
                     </div>
                     <div class="step-card">
-                        <div class="step-icon">2</div>
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        </div>
                         <div class="step-content">
                             <strong>Аптайм 99.9%</strong>
                             <span>Гарантированная доступность проектов круглый год.</span>
                         </div>
                     </div>
                     <div class="step-card">
-                        <div class="step-icon">3</div>
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        </div>
                         <div class="step-content">
                             <strong>Надежная защита</strong>
                             <span>Прямой контакт разработчика для любых вопросов.</span>
@@ -426,7 +436,7 @@
             <div class="faq-list fade-in-up">
                 <div class="faq-item">
                     <button class="faq-question">Нужно ли уметь программировать? <span class="faq-icon">+</span></button>
-                    <div class="faq-answer"><p>Нет, весь процесс редактирования сайтов происходит в интуитивно понятном визуальном редакторе. Вы просто собираете сайт из готовых блоков, как конструктор.</p></div>
+                    <div class="faq-answer"><p>Нет, для наполнения и изменения контента программировать не нужно. meloddyCMS — это профессиональная система управления сайтом (CMS), которая работает прямо поверх готовой верстки. Вы управляете текстами, изображениями и ссылками прямо в визуальном редакторе, сохраняя абсолютно чистый код без ограничений конструкторов.</p></div>
                 </div>
                 <div class="faq-item">
                     <button class="faq-question">Смогу ли я подключить свой домен? <span class="faq-icon">+</span></button>

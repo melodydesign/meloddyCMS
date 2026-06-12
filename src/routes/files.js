@@ -201,7 +201,7 @@ router.get('/api/activity', checkAuth, async (req, res) => {
             const sitesObj = await readJsonObj(SITES_FILE);
             const settings = await readJsonObj(SITE_SETTINGS_FILE);
             Object.keys(sitesObj).forEach(siteId => {
-                if (settings[siteId]?.developerAccess?.code === currentUser.developerCode) {
+                if (settings[siteId]?.developerAccess?.code && settings[siteId].developerAccess.code.toLowerCase() === currentUser.developerCode.toLowerCase()) {
                     allowedSites.push(siteId);
                 }
             });

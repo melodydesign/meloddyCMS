@@ -139,7 +139,7 @@ const isDeveloper = (user) => !!(user && user.developerCode);
 const checkSiteAccess = async (req, siteId, requiredPermission = null) => {
     if (!req.user) return false;
     const users = await readJson(USERS_FILE);
-    const currentUser = users.find(u => u.id === req.user.id);
+    const currentUser = users.find(u => String(u.id) === String(req.user.id));
     if (!currentUser) return false;
     if (currentUser.role === 'admin') return true;
     
@@ -153,9 +153,46 @@ const checkSiteAccess = async (req, siteId, requiredPermission = null) => {
     if (isDeveloper(currentUser)) {
         const settings = await readJsonObj(SITE_SETTINGS_FILE);
         const siteSet = settings[siteId] || {};
-        if (siteSet.developerAccess && siteSet.developerAccess.code === currentUser.developerCode) {
+        
+        let hasSettingsAccess = false;
+        let settingsPermissions = null;
+        
+        if (siteSet.developerAccess && (
+            (siteSet.developerAccess.code && siteSet.developerAccess.code.toLowerCase() === currentUser.developerCode.toLowerCase()) || 
+            String(siteSet.developerAccess.developerId) === String(currentUser.id)
+        )) {
+            hasSettingsAccess = true;
+            settingsPermissions = siteSet.developerAccess.permissions;
+        }
+        
+        let isLinkedViaOwner = false;
+        const ownerId = siteSet.owner;
+        if (ownerId) {
+            const ownerUser = users.find(u => String(u.id) === String(ownerId));
+            if (ownerUser && ownerUser.developerAccess) {
+                if (String(ownerUser.developerAccess.developerId) === String(currentUser.id) || 
+                    (ownerUser.developerAccess.code && ownerUser.developerAccess.code.toLowerCase() === currentUser.developerCode.toLowerCase())) {
+                    isLinkedViaOwner = true;
+                }
+            }
+        }
+        
+        if (!isLinkedViaOwner) {
+            const ownerUser = users.find(u => (u.sites || []).includes(siteId));
+            if (ownerUser && ownerUser.developerAccess) {
+                if (String(ownerUser.developerAccess.developerId) === String(currentUser.id) || 
+                    (ownerUser.developerAccess.code && ownerUser.developerAccess.code.toLowerCase() === currentUser.developerCode.toLowerCase())) {
+                    isLinkedViaOwner = true;
+                }
+            }
+        }
+        
+        if (hasSettingsAccess || isLinkedViaOwner) {
             if (!requiredPermission) return true; // General access
-            return !siteSet.developerAccess.permissions || siteSet.developerAccess.permissions[requiredPermission] !== false;
+            if (settingsPermissions && settingsPermissions[requiredPermission] === false) {
+                return false;
+            }
+            return true;
         }
     }
     

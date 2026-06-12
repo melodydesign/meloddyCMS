@@ -1,5 +1,6 @@
 let currentPath = '';
 let currentFilePath = '';
+let projectRoot = '';
 
 const fileListEl = document.getElementById('fileList');
 const fileEditorEl = document.getElementById('fileEditor');
@@ -61,7 +62,7 @@ async function loadFiles(path = '') {
 function renderFileList(files) {
     fileListEl.innerHTML = '';
     
-    if (currentPath !== '') {
+    if (currentPath !== '' && currentPath !== projectRoot) {
         const upItem = document.createElement('div');
         upItem.className = 'file-item';
         upItem.innerHTML = `${ICONS.folder} .. (Назад)`;
@@ -91,6 +92,15 @@ function renderFileList(files) {
             el.classList.add('active');
             
             if (f.isDirectory) {
+                // Clear selected file path display and editor when entering folder
+                const pathBar = document.getElementById('editorPathBar');
+                if (pathBar) pathBar.style.display = 'none';
+                currentFileNameEl.textContent = 'Выберите файл';
+                saveFileBtn.disabled = true;
+                cmEditor.getWrapperElement().style.display = 'none';
+                imagePreviewEl.style.display = 'none';
+                unsupportedPreviewEl.style.display = 'none';
+                
                 loadFiles(f.path);
             } else {
                 loadFileContent(f.path, f.name);
@@ -141,18 +151,40 @@ function renderFileList(files) {
 }
 
 function updateBreadcrumb() {
+    const showRoot = !projectRoot;
+    
+    let html = '';
+    if (showRoot) {
+        html += `<span onclick="loadFiles('')">/site</span>`;
+    }
+    
     if (!currentPath) {
-        breadcrumbEl.innerHTML = '<span>/site</span>';
+        breadcrumbEl.innerHTML = html || `<span class="active">/</span>`;
         return;
     }
     
     const parts = currentPath.split('/');
-    let html = '<span onclick="loadFiles(\'\')">/site</span>';
     let accum = '';
     
-    parts.forEach(p => {
+    parts.forEach((p, idx) => {
         accum += (accum ? '/' : '') + p;
-        html += ` / <span onclick="loadFiles('${accum}')">${p}</span>`;
+        
+        // Hide components of path that are above the projectRoot
+        if (projectRoot && accum.length < projectRoot.length) {
+            return;
+        }
+        
+        const isLast = idx === parts.length - 1;
+        
+        if (html) {
+            html += ` <span class="separator">/</span> `;
+        }
+        
+        if (isLast) {
+            html += `<span class="active">${p}</span>`;
+        } else {
+            html += `<span onclick="loadFiles('${accum}')">${p}</span>`;
+        }
     });
     
     breadcrumbEl.innerHTML = html;
@@ -172,6 +204,30 @@ async function loadFileContent(path, name) {
     
     currentFileNameEl.textContent = name;
     currentFilePath = path;
+    
+    // Update relative path display in the dedicated path bar
+    let relativePath = path;
+    if (projectRoot && path.startsWith(projectRoot)) {
+        relativePath = path.substring(projectRoot.length);
+    }
+    if (!relativePath.startsWith('/')) {
+        relativePath = '/' + relativePath;
+    }
+    const pathBar = document.getElementById('editorPathBar');
+    const pathText = document.getElementById('editorPathText');
+    const pathIcon = document.getElementById('editorPathIcon');
+    if (pathBar && pathText) {
+        pathText.textContent = relativePath;
+        pathBar.style.display = 'flex';
+        
+        if (pathIcon) {
+            if (isImage) {
+                pathIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
+            } else {
+                pathIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`;
+            }
+        }
+    }
     
     // Hide all
     cmEditor.getWrapperElement().style.display = 'none';
@@ -251,12 +307,28 @@ if (document.getElementById('logoutBtn')) {
     });
 }
 
-// Init
+// Init URL search param and load files
+const urlParams = new URLSearchParams(window.location.search);
+let siteParam = urlParams.get('site');
+if (siteParam === 'null' || siteParam === 'undefined') {
+    siteParam = null;
+}
+
+if (siteParam) {
+    projectRoot = siteParam;
+    localStorage.setItem('activeSite', siteParam);
+} else {
+    let cachedSite = localStorage.getItem('activeSite');
+    if (cachedSite === 'null' || cachedSite === 'undefined') {
+        cachedSite = null;
+    }
+    projectRoot = cachedSite || '';
+}
+
 cmEditor.getWrapperElement().style.display = 'none';
 
-const activeSite = localStorage.getItem('activeSite');
-if (activeSite) {
-    loadFiles(activeSite);
+if (projectRoot) {
+    loadFiles(projectRoot);
 } else {
     loadFiles();
 }
@@ -272,10 +344,10 @@ if (uploadFileBtn && fileUploadInput) {
         if (!files.length) return;
         
         const formData = new FormData();
+        formData.append('path', currentPath);
         for(let i=0; i<files.length; i++) {
             formData.append('files', files[i]);
         }
-        formData.append('path', currentPath);
         
         uploadFileBtn.disabled = true;
         uploadFileBtn.innerHTML = 'Загрузка...';

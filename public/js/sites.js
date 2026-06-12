@@ -60,7 +60,7 @@ mises.readdir(SITE_DIR);
             
             let clientSet = new Set();
             Object.keys(sitesObj).forEach(siteId => {
-                if (settings[siteId]?.developerAccess?.code === currentUser.developerCode) {
+                if (settings[siteId]?.developerAccess?.code && settings[siteId].developerAccess.code.toLowerCase() === currentUser.developerCode.toLowerCase()) {
                     allowedSites.push(siteId);
                     clientSet.add(sitesObj[siteId].owner);
                 }

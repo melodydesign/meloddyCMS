@@ -4,3 +4,13 @@ data/credentials.json
 .env
 .DS_Store
 *.log
+
+# Исключение временных и ИИ-директорий
+.agent/
+artifacts/
+scratch/
+
+check_log.py
+scratch_test.js
+data/products/
+

@@ -366,7 +366,7 @@ router.get('/api/sites', checkAuth, async (req, res) => {
         
         const assignedSites = sites.filter(s => {
             const siteSet = siteSettings[s.id] || {};
-            return siteSet.developerAccess && siteSet.developerAccess.code === devCode;
+            return siteSet.developerAccess && siteSet.developerAccess.code && siteSet.developerAccess.code.toLowerCase() === devCode.toLowerCase();
         });
         
         const clients = users.filter(u => u.role === 'client');
@@ -777,7 +777,7 @@ router.get('/api/stats', checkAuth, async (req, res) => {
             
             let clientSet = new Set();
             Object.keys(sitesObj).forEach(siteId => {
-                if (settings[siteId]?.developerAccess?.code === currentUser.developerCode) {
+                if (settings[siteId]?.developerAccess?.code && settings[siteId].developerAccess.code.toLowerCase() === currentUser.developerCode.toLowerCase()) {
                     allowedSites.push(siteId);
                     clientSet.add(sitesObj[siteId].owner);
                 }
@@ -1193,8 +1193,17 @@ router.get('/api/site-settings/:siteId', checkAuth, async (req, res) => {
             webvisor: false,
             favicon: '',
             telegramToken: '',
-            telegramChatId: null
+            telegramChatId: null,
+            modules: { commerce: false, news: false },
+            currency: 'RUB'
         };
+    } else {
+        if (!settings[siteId].modules) {
+            settings[siteId].modules = { commerce: false, news: false };
+        }
+        if (!settings[siteId].currency) {
+            settings[siteId].currency = 'RUB';
+        }
     }
     
     if (!settings[siteId].botCode) {
@@ -1207,6 +1216,7 @@ router.get('/api/site-settings/:siteId', checkAuth, async (req, res) => {
 
 // 17. Save Site Settings
 router.post('/api/site-settings/:siteId', checkAuth, async (req, res) => {
+    try {
     const settings = await readJsonObj(SITE_SETTINGS_FILE);
     const siteId = req.params.siteId;
     if (!(await checkSiteAccess(req, siteId))) return res.status(403).json({ error: 'Доступ запрещен' });
@@ -1223,7 +1233,11 @@ router.post('/api/site-settings/:siteId', checkAuth, async (req, res) => {
         backupFrequency,
         telegramToken,
         telegramChatId,
-        developerAccess
+        developerAccess,
+        modules,
+        currency,
+        timezone,
+        forceSsl
     } = req.body;
     
     // Validations
@@ -1264,7 +1278,11 @@ router.post('/api/site-settings/:siteId', checkAuth, async (req, res) => {
         backupFrequency: backupFrequency || 'daily',
         telegramToken: telegramToken !== undefined ? telegramToken.trim() : oldToken,
         telegramChatId: telegramChatId !== undefined ? telegramChatId : (settings[siteId]?.telegramChatId || null),
-        developerAccess: developerAccess || settings[siteId]?.developerAccess || { code: '', permissions: {} }
+        developerAccess: developerAccess || settings[siteId]?.developerAccess || { code: '', permissions: {} },
+        modules: modules || settings[siteId]?.modules || { commerce: false, news: false },
+        currency: currency || settings[siteId]?.currency || 'RUB',
+        timezone: timezone || 'Europe/Moscow',
+        forceSsl: !!forceSsl
     };
     
     await writeJson(SITE_SETTINGS_FILE, settings);
@@ -1272,7 +1290,7 @@ router.post('/api/site-settings/:siteId', checkAuth, async (req, res) => {
     if (oldDevCode && oldDevCode !== newDevCode) {
         // Find the developer who had this code
         const usersList = await readJson(USERS_FILE);
-        const oldDevUser = usersList.find(u => u.developerCode === oldDevCode);
+        const oldDevUser = usersList.find(u => u.developerCode && oldDevCode && u.developerCode.toLowerCase() === oldDevCode.toLowerCase());
         if (oldDevUser && oldDevUser.telegramChatId) {
             try {
                 const { sendTelegramMessage } = require('../services/telegram');
@@ -1287,13 +1305,17 @@ router.post('/api/site-settings/:siteId', checkAuth, async (req, res) => {
         }
     }
     
-    // Dynamically register the bot poller if custom token changed
-    if (telegramToken && telegramToken !== oldToken) {
-        const telegramService = require('../services/telegram');
-        telegramService.startPollingForBot(telegramToken.trim());
+        // Dynamically register the bot poller if custom token changed
+        if (telegramToken && telegramToken !== oldToken) {
+            const telegramService = require('../services/telegram');
+            telegramService.startPollingForBot(telegramToken.trim());
+        }
+        
+        res.json({ success: true });
+    } catch (e) {
+        console.error('Save Settings Error:', e);
+        res.status(500).json({ error: e.message });
     }
-    
-    res.json({ success: true });
 });
 
 // 17.1. Telegram Connect
@@ -1470,6 +1492,140 @@ ym(${siteSettings.metrikaId}, "init", {
     }
     
     fs.writeFileSync(livePath, html, 'utf-8');
+
+    // Compile Products & Catalog if Commerce module is active
+    if (siteSettings.modules && siteSettings.modules.commerce) {
+        try {
+            const cheerio = require('cheerio');
+            const PRODUCTS_DIR = path.join(__dirname, '..', '..', 'data', 'products');
+            const productsPath = path.join(PRODUCTS_DIR, `${siteId}.json`);
+            
+            if (fs.existsSync(productsPath)) {
+                const products = JSON.parse(fs.readFileSync(productsPath, 'utf-8'));
+                const activeProducts = products.filter(p => p.status === 'active');
+                const symbol = siteSettings.currency === 'USD' ? '$' : (siteSettings.currency === 'EUR' ? '€' : '₽');
+                
+                // Field value selector helper
+                const getVal = (p, attr) => {
+                    if (attr === 'name') return p.name || '';
+                    if (attr === 'price') return `${p.price.toLocaleString()} ${symbol}`;
+                    if (attr === 'oldPrice') return p.oldPrice ? `${p.oldPrice.toLocaleString()} ${symbol}` : '';
+                    if (attr === 'sku') return p.sku || '';
+                    if (attr === 'description') return p.description || '';
+                    if (attr === 'stock') return p.stock || 0;
+                    if (attr === 'images') return p.images && p.images.length > 0 ? p.images[0] : '';
+                    if (attr.startsWith('customFields.')) {
+                        const fId = attr.split('.')[1];
+                        return p.customFields?.[fId] || '';
+                    }
+                    return '';
+                };
+                
+                // 1. Compile product detail pages
+                const productTemplatePath = path.join(SITE_DIR, siteId, 'product.draft.html');
+                if (fs.existsSync(productTemplatePath)) {
+                    const templateHtml = fs.readFileSync(productTemplatePath, 'utf-8');
+                    
+                    activeProducts.forEach(p => {
+                        const $ = cheerio.load(templateHtml);
+                        
+                        $('[data-bind-product]').each((i, el) => {
+                            const attr = $(el).attr('data-bind-product');
+                            const tag = el.tagName.toLowerCase();
+                            const val = getVal(p, attr);
+                            
+                            if (tag === 'img') {
+                                $(el).attr('src', val);
+                            } else {
+                                $(el).html(val);
+                            }
+                        });
+                        
+                        const generatedPath = path.join(SITE_DIR, siteId, `product-${p.slug}.html`);
+                        let genHtml = $.html();
+                        
+                        if (siteSettings.metrikaId) {
+                            genHtml = genHtml.replace(/<!-- METRIKA_START -->[\s\S]*?<!-- METRIKA_END -->/g, '');
+                            const mScript = `<!-- METRIKA_START -->\n<script type="text/javascript">
+(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+m[i].l=1*new Date();
+for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r)return;}
+k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+ym(${siteSettings.metrikaId}, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true ${siteSettings.webvisor ? ', webvisor:true' : ''} });
+</script>\n<noscript><div><img src="https://mc.yandex.ru/watch/${siteSettings.metrikaId}" style="position:absolute; left:-9999px;" alt="" /></div></noscript>\n<!-- METRIKA_END -->`;
+                            genHtml = genHtml.replace('</head>', mScript + '\n</head>');
+                        }
+                        if (siteSettings.favicon) {
+                            genHtml = genHtml.replace(/<!-- FAVICON_START -->[\s\S]*?<!-- FAVICON_END -->/g, '');
+                            const fTag = `<!-- FAVICON_START -->\n<link rel="icon" href="${siteSettings.favicon}">\n<!-- FAVICON_END -->`;
+                            genHtml = genHtml.replace('</head>', fTag + '\n</head>');
+                        }
+                        
+                        fs.writeFileSync(generatedPath, genHtml, 'utf-8');
+                    });
+                }
+                
+                // 2. Compile catalog page
+                const catalogTemplatePath = path.join(SITE_DIR, siteId, 'catalog.draft.html');
+                const catalogLivePath = path.join(SITE_DIR, siteId, 'catalog.html');
+                if (fs.existsSync(catalogTemplatePath)) {
+                    const catalogHtml = fs.readFileSync(catalogTemplatePath, 'utf-8');
+                    const $ = cheerio.load(catalogHtml);
+                    const container = $('[data-catalog-container]');
+                    
+                    if (container.length > 0) {
+                        const cardTemplate = container.children().first().clone();
+                        container.empty();
+                        
+                        activeProducts.forEach(p => {
+                            const card = cardTemplate.clone();
+                            card.find('[data-bind-product]').each((i, el) => {
+                                const attr = $(el).attr('data-bind-product');
+                                const tag = el.tagName.toLowerCase();
+                                const val = getVal(p, attr);
+                                if (tag === 'img') {
+                                    $(el).attr('src', val);
+                                } else {
+                                    $(el).html(val);
+                                }
+                            });
+                            
+                            // Link target to static detail page
+                            card.find('a').each((i, el) => {
+                                $(el).attr('href', `product-${p.slug}.html`);
+                            });
+                            
+                            container.append(card);
+                        });
+                    }
+                    
+                    let compiledCatalog = $.html();
+                    if (siteSettings.metrikaId) {
+                        compiledCatalog = compiledCatalog.replace(/<!-- METRIKA_START -->[\s\S]*?<!-- METRIKA_END -->/g, '');
+                        const mScript = `<!-- METRIKA_START -->\n<script type="text/javascript">
+(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+m[i].l=1*new Date();
+for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r)return;}
+k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+ym(${siteSettings.metrikaId}, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true ${siteSettings.webvisor ? ', webvisor:true' : ''} });
+</script>\n<noscript><div><img src="https://mc.yandex.ru/watch/${siteSettings.metrikaId}" style="position:absolute; left:-9999px;" alt="" /></div></noscript>\n<!-- METRIKA_END -->`;
+                        compiledCatalog = compiledCatalog.replace('</head>', mScript + '\n</head>');
+                    }
+                    if (siteSettings.favicon) {
+                        compiledCatalog = compiledCatalog.replace(/<!-- FAVICON_START -->[\s\S]*?<!-- FAVICON_END -->/g, '');
+                        const fTag = `<!-- FAVICON_START -->\n<link rel="icon" href="${siteSettings.favicon}">\n<!-- FAVICON_END -->`;
+                        compiledCatalog = compiledCatalog.replace('</head>', fTag + '\n</head>');
+                    }
+                    
+                    fs.writeFileSync(catalogLivePath, compiledCatalog, 'utf-8');
+                }
+            }
+        } catch (err) {
+            console.error('Commerce publish compilation failed:', err);
+        }
+    }
     
     const siteSettingsAll = await readJsonObj(SITE_SETTINGS_FILE);
     if (!siteSettingsAll[siteId]) siteSettingsAll[siteId] = {};

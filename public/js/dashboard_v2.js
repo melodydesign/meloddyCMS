@@ -41,6 +41,9 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
     window.location.href = '/login.html';
 });
 
+let currentUserIsAdmin = false;
+let currentUserIsDeveloper = false;
+
 // Fetch and display sites
 async function loadSites() {
     const container = document.getElementById('sitesContainer');
@@ -81,6 +84,8 @@ async function loadSites() {
         // Check role and display/hide Admin-only elements
         const isAdmin = data.isAdmin === true;
         const isDeveloper = data.isDeveloper === true;
+        currentUserIsAdmin = isAdmin;
+        currentUserIsDeveloper = isDeveloper;
         
         document.querySelectorAll('.admin-only-action').forEach(el => {
             el.style.display = isAdmin ? 'block' : 'none';
@@ -111,85 +116,94 @@ async function loadSites() {
                 container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">Нет доступных клиентов</div>';
                 return;
             }
-            
-            // Create tabs
-            const tabsContainer = document.createElement('div');
-            tabsContainer.className = 'client-tabs-container';
-            tabsContainer.style.gridTemplateColumns = `repeat(${data.clients.length}, 1fr)`;
-            
             const contentContainer = document.createElement('div');
             contentContainer.style.display = 'grid';
             contentContainer.style.gridTemplateColumns = '1fr 1fr';
             contentContainer.style.gap = '1.5rem';
-            
-            data.clients.forEach((client, index) => {
-                const tab = document.createElement('div');
-                tab.className = 'client-tab-item' + (index === 0 ? ' active' : '');
-                tab.dataset.clientId = client.id;
+
+            if (data.clients.length > 1) {
+                // Create tabs
+                const tabsContainer = document.createElement('div');
+                tabsContainer.className = 'client-tabs-container';
                 
-                tab.innerHTML = `
-                    <button class="client-name-btn" style="flex: 1; display: flex; align-items: center; justify-content: flex-start; background: none; border: none; color: inherit; cursor: pointer; font-weight: 600; font-size: 0.85rem; padding: 0.75rem 4px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; opacity: 0.8; flex-shrink: 0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        <span class="client-name-text" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${client.name || client.username}</span>
-                    </button>
-                    ${isAdmin ? `
-                    <div style="display: flex; align-items: center; gap: 2px;">
-                        <button class="client-edit-btn" style="background: none; border: none; color: inherit; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; opacity: 1; transition: opacity 0.2s; border-radius: 4px;" title="Редактировать имя">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                data.clients.forEach((client, index) => {
+                    const tab = document.createElement('div');
+                    tab.className = 'client-tab-item' + (index === 0 ? ' active' : '');
+                    tab.dataset.clientId = client.id;
+                    
+                    tab.innerHTML = `
+                        <button class="client-name-btn" style="flex: 1; display: flex; align-items: center; justify-content: flex-start; background: none; border: none; color: inherit; cursor: pointer; font-weight: 600; font-size: 0.85rem; padding: 0.75rem 4px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; opacity: 0.8; flex-shrink: 0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span class="client-name-text" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${client.name || client.username}</span>
                         </button>
-                        <button class="client-delete-btn" style="background: none; border: none; color: #f43f5e; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; opacity: 1; transition: opacity 0.2s; border-radius: 4px;" title="Удалить клиента">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
-                    </div>
-                    ` : ''}
-                `;
-                
-                // Switch client active tab
-                tab.querySelector('.client-name-btn').addEventListener('click', () => {
-                    tabsContainer.querySelectorAll('.client-tab-item').forEach(b => {
-                        b.classList.remove('active');
+                        ${isAdmin ? `
+                        <div style="display: flex; align-items: center; gap: 2px;">
+                            <button class="client-edit-btn" style="background: none; border: none; color: inherit; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; opacity: 1; transition: opacity 0.2s; border-radius: 4px;" title="Редактировать имя">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+                            <button class="client-delete-btn" style="background: none; border: none; color: #f43f5e; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; opacity: 1; transition: opacity 0.2s; border-radius: 4px;" title="Удалить клиента">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                        </div>
+                        ` : ''}
+                    `;
+                    
+                    // Switch client active tab
+                    tab.querySelector('.client-name-btn').addEventListener('click', () => {
+                        tabsContainer.querySelectorAll('.client-tab-item').forEach(b => {
+                            b.classList.remove('active');
+                        });
+                        
+                        tab.classList.add('active');
+                        
+                        // Show sites for this client
+                        renderClientSites(client.sites, contentContainer);
                     });
                     
-                    tab.classList.add('active');
+                    // Rename Client Action (using custom styled modal)
+                    tab.querySelector('.client-edit-btn')?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openRenameClientModal(client.id, client.name || client.username);
+                    });
                     
-                    // Show sites for this client
-                    renderClientSites(client.sites, contentContainer);
-                });
-                
-                // Rename Client Action (using custom styled modal)
-                tab.querySelector('.client-edit-btn')?.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openRenameClientModal(client.id, client.name || client.username);
-                });
-                
-                // Delete Client Action (Trash bin retention)
-                tab.querySelector('.client-delete-btn')?.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    if (confirm(`Вы уверены, что хотите удалить клиента "${client.name || client.username}"? Все его сайты также будут перемещены в корзину на 7 дней.`)) {
-                        try {
-                            const res = await fetch(`/api/clients/${client.id}/delete`, {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-Token': document.cookie.split('; ').find(row => row.startsWith('csrfToken='))?.split('=')[1]
+                    // Delete Client Action (Trash bin retention)
+                    tab.querySelector('.client-delete-btn')?.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        if (confirm(`Вы уверены, что хотите удалить клиента "${client.name || client.username}"? Все его сайты также будут перемещены в корзину на 7 дней.`)) {
+                            try {
+                                const res = await fetch(`/api/clients/${client.id}/delete`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-Token': document.cookie.split('; ').find(row => row.startsWith('csrfToken='))?.split('=')[1]
+                                    }
+                                });
+                                const data = await res.json();
+                                if (res.ok) {
+                                    if (typeof showToast === 'function') showToast(data.message || 'Клиент успешно перенесен в корзину!');
+                                    loadSites();
+                                } else {
+                                    if (typeof showToast === 'function') showToast(data.error || 'Ошибка при удалении клиента', 'error'); else alert(data.error || 'Ошибка при удалении клиента');
                                 }
-                            });
-                            const data = await res.json();
-                            if (res.ok) {
-                                if (typeof showToast === 'function') showToast(data.message || 'Клиент успешно перенесен в корзину!');
-                                loadSites();
-                            } else {
-                                if (typeof showToast === 'function') showToast(data.error || 'Ошибка при удалении клиента', 'error'); else alert(data.error || 'Ошибка при удалении клиента');
+                            } catch (err) {
+                                if (typeof showToast === 'function') showToast('Не удалось связаться с сервером', 'error'); else alert('Не удалось связаться с сервером');
                             }
-                        } catch (err) {
-                            if (typeof showToast === 'function') showToast('Не удалось связаться с сервером', 'error'); else alert('Не удалось связаться с сервером');
                         }
-                    }
+                    });
+                    
+                    tabsContainer.appendChild(tab);
                 });
                 
-                tabsContainer.appendChild(tab);
-            });
-            
-            container.appendChild(tabsContainer);
+                const clientTabsWrapper = document.getElementById('clientTabsWrapper');
+                if (clientTabsWrapper) {
+                    clientTabsWrapper.innerHTML = '';
+                    clientTabsWrapper.appendChild(tabsContainer);
+                }
+            } else {
+                const clientTabsWrapper = document.getElementById('clientTabsWrapper');
+                if (clientTabsWrapper) {
+                    clientTabsWrapper.innerHTML = '';
+                }
+            }
             container.appendChild(contentContainer);
             
             // Render first client's sites by default
@@ -247,6 +261,57 @@ async function loadSites() {
         const dateSelect = document.getElementById('activityTimeFilter');
         if (dateSelect) renderCustomSelect('activityTimeFilter');
 
+        // Auto-open site manage panel if site parameter is specified in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoSiteId = urlParams.get('site');
+        if (autoSiteId) {
+            let foundSite = null;
+            if (data && data.clients) {
+                for (const client of data.clients) {
+                    const match = client.sites?.find(s => (s.path || s.id) === autoSiteId);
+                    if (match) {
+                        foundSite = match;
+                        // Switch client active tab
+                        const tabItem = document.querySelector(`.client-tab-item[data-client-id="${client.id}"]`);
+                        if (tabItem) {
+                            const btn = tabItem.querySelector('.client-name-btn');
+                            if (btn) btn.click();
+                        }
+                        break;
+                    }
+                }
+            } else if (data) {
+                const clientSites = data.sites || data;
+                if (Array.isArray(clientSites)) {
+                    foundSite = clientSites.find(s => (s.path || s.id) === autoSiteId);
+                }
+            }
+            
+            if (foundSite) {
+                const targetSitePath = foundSite.path || foundSite.id;
+                localStorage.setItem('activeSite', targetSitePath);
+                
+                const viewSiteBtn = document.getElementById('viewSiteBtn');
+                if (viewSiteBtn) viewSiteBtn.href = `/real-site/${targetSitePath}/index.html`;
+                
+                const openEditorBtn = document.getElementById('openEditorBtn');
+                if (openEditorBtn) openEditorBtn.href = `/visual-editor.html?site=${targetSitePath}`;
+
+                const openFileManagerBtn = document.getElementById('openFileManagerBtn');
+                if (openFileManagerBtn) openFileManagerBtn.href = `/file-manager.html?site=${targetSitePath}`;
+                
+                const siteModalTitle = document.getElementById('siteModalTitle');
+                if (siteModalTitle) siteModalTitle.textContent = foundSite.name || foundSite.path || foundSite.id;
+                
+                switchSiteTab('settings');
+                
+                const dmc = document.getElementById('dashboardMainContainer');
+                if (dmc) dmc.style.display = 'none';
+                const smc = document.getElementById('siteManageContainer');
+                if (smc) smc.style.display = 'flex';
+            }
+        }
+
     } catch (err) {
         console.error(err);
         container.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">Ошибка загрузки проектов</div>';
@@ -270,7 +335,6 @@ function renderClientSites(sites, container) {
         const div = document.createElement('div');
         div.className = 'hero-card';
         div.style.cursor = 'pointer';
-        div.style.marginBottom = '1rem';
         
         div.innerHTML = `
             <div style="display: flex; align-items: center; gap: 1.5rem;">
@@ -280,15 +344,22 @@ function renderClientSites(sites, container) {
                 <div class="hero-info">
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <h3 style="margin: 0; font-size: 1.1rem;">${site.name}</h3>
-                        <span style="padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; ${site.status === 'online' ? 'background: rgba(16,185,129,0.1); color: #10b981;' : 'background: rgba(244,63,94,0.1); color: #f43f5e;'}">
-                            ${site.status === 'online' ? '● Онлайн' : '○ Оффлайн'}
+                        <span class="status-badge ${site.status === 'online' ? 'status-online' : 'status-offline'}">
+                            <span class="status-dot"></span>
+                            ${site.status === 'online' ? 'Онлайн' : 'Оффлайн'}
                         </span>
-                        ${site.hasDrafts ? '<span style="background: rgba(255,165,0,0.1); color: #ffa500; padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 700;">ЧЕРНОВИК</span>' : ''}
+                        ${site.hasDrafts ? '<span class="status-badge status-draft">Черновик</span>' : ''}
                     </div>
                     <p style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.85rem;">${site.description || 'ID: ' + (site.path || site.id || 'Unknown')}</p>
                     <div style="display: flex; gap: 12px; margin-top: 6px;">
-                        ${site.domain ? `<span style="color: var(--text-muted); font-size: 0.75rem; opacity: 0.7;">🌐 ${site.domain}</span>` : ''}
-                        <span style="color: var(--text-muted); font-size: 0.75rem; opacity: 0.7;">📦 ${((site.size || 0) / 1024 / 1024).toFixed(2)} MB</span>
+                        ${site.domain ? `<span style="color: var(--text-muted); font-size: 0.75rem; opacity: 0.7; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.8;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            ${site.domain}
+                        </span>` : ''}
+                        <span style="color: var(--text-muted); font-size: 0.75rem; opacity: 0.7; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.8;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                            ${((site.size || 0) / 1024 / 1024).toFixed(2)} MB
+                        </span>
                     </div>
                 </div>
             </div>
@@ -419,18 +490,43 @@ function renderClientSites(sites, container) {
 let currentSettingsSiteId = '';
 
 function switchSiteTab(tab) {
+    if (tab === 'commerce') {
+        const siteId = localStorage.getItem('activeSite');
+        if (!siteId) return;
+        
+        fetch(`/api/site-settings/${encodeURIComponent(siteId)}`)
+            .then(res => res.json())
+            .then(data => {
+                const commerceEnabled = !!(data.modules && data.modules.commerce);
+                if (commerceEnabled) {
+                    window.location.href = `/commerce.html?site=${encodeURIComponent(siteId)}`;
+                } else {
+                    document.getElementById('commerceBlockedModal').style.display = 'flex';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                if (typeof showToast === 'function') showToast('Ошибка сети при проверке доступа', 'error');
+            });
+        return;
+    }
+
     const panels = ['panelOverview', 'panelSettings', 'panelSeo', 'panelAccess', 'panelDanger'];
     panels.forEach(p => {
         const el = document.getElementById(p);
         if (el) el.style.display = 'none';
     });
     
-    document.querySelectorAll('.site-modal-tab').forEach(b => {
-        b.classList.remove('active');
+    const tabs = ['tabSiteSettings', 'tabSiteOverview', 'tabSiteSeo', 'tabSiteAccess', 'tabSiteCommerce', 'tabSiteDanger'];
+    tabs.forEach(tId => {
+        const el = document.getElementById(tId);
+        if (el) el.classList.remove('active');
     });
 
-    if (event && event.currentTarget) {
-        event.currentTarget.classList.add('active');
+    const activeTabId = 'tabSite' + tab.charAt(0).toUpperCase() + tab.slice(1);
+    const activeTabEl = document.getElementById(activeTabId);
+    if (activeTabEl) {
+        activeTabEl.classList.add('active');
     }
 
     currentSettingsSiteId = localStorage.getItem('activeSite') || '';
@@ -619,8 +715,32 @@ async function loadSiteSettings(siteId) {
         document.getElementById('settMetrikaId').value = data.metrikaId || '';
         document.getElementById('settWebvisor').checked = !!data.webvisor;
         document.getElementById('settFavicon').value = data.favicon || '';
-        document.getElementById('settBackupEnabled').checked = !!data.backupEnabled;
         document.getElementById('settBackupFrequency').value = data.backupFrequency || 'daily';
+        document.getElementById('settTimezone').value = data.timezone || 'Europe/Moscow';
+        document.getElementById('settForceSsl').checked = !!data.forceSsl;
+        
+        document.getElementById('settModuleCommerce').checked = !!(data.modules && data.modules.commerce);
+        document.getElementById('settModuleNews').checked = !!(data.modules && data.modules.news);
+        document.getElementById('settCurrency').value = data.currency || 'RUB';
+
+        if (typeof initCustomSelect === 'function') {
+            initCustomSelect(document.getElementById('settBackupFrequency'));
+            initCustomSelect(document.getElementById('settTimezone'));
+            initCustomSelect(document.getElementById('settCurrency'));
+        }
+        
+        const commerceEnabled = !!(data.modules && data.modules.commerce);
+        const tabSiteCommerce = document.getElementById('tabSiteCommerce');
+        const commerceLockIcon = document.getElementById('commerceLockIcon');
+        if (tabSiteCommerce) {
+            if (commerceEnabled) {
+                tabSiteCommerce.style.opacity = '1';
+                if (commerceLockIcon) commerceLockIcon.style.display = 'none';
+            } else {
+                tabSiteCommerce.style.opacity = '0.5';
+                if (commerceLockIcon) commerceLockIcon.style.display = 'inline';
+            }
+        }
         
         const devSection = document.getElementById('developerAccessSection');
         if (data._userRole === 'developer') {
@@ -709,6 +829,13 @@ document.getElementById('siteSettingsForm')?.addEventListener('submit', async (e
                 favicon: document.getElementById('settFavicon').value,
                 backupEnabled: document.getElementById('settBackupEnabled').checked,
                 backupFrequency: document.getElementById('settBackupFrequency').value,
+                timezone: document.getElementById('settTimezone').value,
+                forceSsl: document.getElementById('settForceSsl').checked,
+                modules: {
+                    commerce: document.getElementById('settModuleCommerce').checked,
+                    news: document.getElementById('settModuleNews').checked
+                },
+                currency: document.getElementById('settCurrency').value,
                 developerAccess: document.getElementById('settDeveloperCode') ? {
                     code: document.getElementById('settDeveloperCode').value,
                     permissions: {
@@ -723,6 +850,8 @@ document.getElementById('siteSettingsForm')?.addEventListener('submit', async (e
             showToast('Настройки сохранены', 'success');
             // Reload sites to update display name
             loadSites();
+            // Dynamically reload site settings to update commerce lock and tab style
+            loadSiteSettings(currentSettingsSiteId);
         } else {
             showToast('Ошибка сохранения настроек', 'error');
         }
@@ -888,8 +1017,8 @@ document.getElementById('uploadFaviconBtn')?.addEventListener('click', () => {
         if (!input.files.length) return;
         
         const formData = new FormData();
-        formData.append('files', input.files[0]);
         formData.append('path', currentSettingsSiteId);
+        formData.append('files', input.files[0]);
         
         try {
             const res = await fetch('/api/upload', {
@@ -1891,16 +2020,35 @@ document.addEventListener('DOMContentLoaded', () => {
         if(templatesSection) templatesSection.style.display = 'none';
         if(requestsSection) requestsSection.style.display = 'none';
         
+        const titleEl = document.getElementById('dashboardSectionTitle');
+        const openUploadSiteBtn = document.getElementById('openUploadSiteBtn');
+        const openTrashBinBtn = document.getElementById('openTrashBinBtn');
+        const openUploadTemplateBtn = document.getElementById('openUploadTemplateBtn');
+        
+        if (openUploadSiteBtn) openUploadSiteBtn.style.display = 'none';
+        if (openTrashBinBtn) openTrashBinBtn.style.display = 'none';
+        if (openUploadTemplateBtn) openUploadTemplateBtn.style.display = 'none';
+        
         if (tab === 'projects') {
             if(tabProjects) tabProjects.classList.add('active');
             if(projectsSection) projectsSection.style.display = 'block';
+            if(titleEl) titleEl.textContent = 'Проекты';
+            
+            if (openUploadSiteBtn) openUploadSiteBtn.style.display = 'flex';
+            if (openTrashBinBtn && (currentUserIsAdmin || currentUserIsDeveloper)) {
+                openTrashBinBtn.style.display = 'flex';
+            }
         } else if (tab === 'templates') {
             if(tabTemplates) tabTemplates.classList.add('active');
             if(templatesSection) templatesSection.style.display = 'block';
+            if(titleEl) titleEl.textContent = 'Шаблоны';
             if(typeof loadTemplates === 'function') loadTemplates();
+            
+            if (openUploadTemplateBtn) openUploadTemplateBtn.style.display = 'flex';
         } else if (tab === 'requests') {
             if(tabRequests) tabRequests.classList.add('active');
             if(requestsSection) requestsSection.style.display = 'block';
+            if(titleEl) titleEl.textContent = 'Входящие заявки';
             if(typeof loadRequests === 'function') loadRequests();
         }
     }
@@ -2241,5 +2389,146 @@ document.addEventListener('click', () => {
     document.querySelectorAll('.site-dropdown-menu').forEach(menu => {
         menu.style.display = 'none';
         menu.closest('.hero-card')?.classList.remove('active-dropdown');
+    });
+});
+
+// --- TRASH BIN OPERATIONS ---
+async function loadTrashBin() {
+    const clientsList = document.getElementById('deletedClientsList');
+    const sitesList = document.getElementById('deletedSitesList');
+    if (!clientsList || !sitesList) return;
+
+    try {
+        const res = await fetch('/api/trash');
+        if (!res.ok) throw new Error('Failed to load trash bin');
+        const data = await res.json();
+
+        // Render Clients
+        if (!data.clients || data.clients.length === 0) {
+            clientsList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px dashed var(--border);">Нет удаленных клиентов</div>';
+        } else {
+            clientsList.innerHTML = '';
+            data.clients.forEach(c => {
+                const div = document.createElement('div');
+                div.style.background = 'var(--bg-body)';
+                div.style.border = '1px solid var(--border)';
+                div.style.borderRadius = '8px';
+                div.style.padding = '12px 16px';
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                
+                const deletedDate = new Date(c.deletedAt).toLocaleDateString('ru-RU');
+                
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-main); font-size: 0.9rem;">${c.name} (${c.username})</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Удален: ${deletedDate} • Сайтов в корзине: ${c.sitesCount}</div>
+                    </div>
+                    <button class="btn btn-outline restore-client-btn" data-id="${c.id}" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 600;">
+                        Восстановить
+                    </button>
+                `;
+                
+                div.querySelector('.restore-client-btn').addEventListener('click', async () => {
+                    await restoreClientFromTrash(c.id);
+                });
+                
+                clientsList.appendChild(div);
+            });
+        }
+
+        // Render Sites
+        if (!data.sites || data.sites.length === 0) {
+            sitesList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; padding: 10px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px dashed var(--border);">Нет удаленных сайтов</div>';
+        } else {
+            sitesList.innerHTML = '';
+            data.sites.forEach(s => {
+                const div = document.createElement('div');
+                div.style.background = 'var(--bg-body)';
+                div.style.border = '1px solid var(--border)';
+                div.style.borderRadius = '8px';
+                div.style.padding = '12px 16px';
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                
+                const deletedDate = new Date(s.deletedAt).toLocaleDateString('ru-RU');
+                
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-main); font-size: 0.9rem;">${s.displayName} (${s.siteId})</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Удален: ${deletedDate}</div>
+                    </div>
+                    <button class="btn btn-outline restore-site-btn" data-folder="${s.folderName}" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 600;">
+                        Восстановить
+                    </button>
+                `;
+                
+                div.querySelector('.restore-site-btn').addEventListener('click', async () => {
+                    await restoreSiteFromTrash(s.folderName);
+                });
+                
+                sitesList.appendChild(div);
+            });
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function restoreSiteFromTrash(folderName) {
+    try {
+        const res = await fetch('/api/trash/restore-site', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.cookie.split('; ').find(row => row.startsWith('csrfToken='))?.split('=')[1]
+            },
+            body: JSON.stringify({ folderName })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            if (typeof showToast === 'function') showToast(data.message || 'Сайт успешно восстановлен!');
+            loadTrashBin();
+            loadSites();
+            loadStats();
+        } else {
+            alert(data.error || 'Ошибка при восстановлении сайта');
+        }
+    } catch (err) {
+        alert('Не удалось связаться с сервером');
+    }
+}
+
+async function restoreClientFromTrash(clientId) {
+    try {
+        const res = await fetch('/api/trash/restore-client', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.cookie.split('; ').find(row => row.startsWith('csrfToken='))?.split('=')[1]
+            },
+            body: JSON.stringify({ id: clientId })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            if (typeof showToast === 'function') showToast(data.message || 'Клиент успешно восстановлен!');
+            loadTrashBin();
+            loadSites();
+            loadStats();
+        } else {
+            alert(data.error || 'Ошибка при восстановлении клиента');
+        }
+    } catch (err) {
+        alert('Не удалось связаться с сервером');
+    }
+}
+
+// Commerce blocked modal helper
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('goToCommerceSettingsBtn')?.addEventListener('click', () => {
+        document.getElementById('commerceBlockedModal').style.display = 'none';
+        switchSiteTab('settings');
     });
 });

@@ -109,12 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     tabUsers.addEventListener('click', () => {
         tabUsers.classList.add('active');
-        tabUsers.style.borderBottomColor = 'var(--primary)';
-        tabUsers.style.color = 'var(--text-main)';
-        
         tabSites.classList.remove('active');
-        tabSites.style.borderBottomColor = 'transparent';
-        tabSites.style.color = 'var(--text-muted)';
         
         secUsers.style.display = 'block';
         secSites.style.display = 'none';
@@ -124,12 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     tabSites.addEventListener('click', () => {
         tabSites.classList.add('active');
-        tabSites.style.borderBottomColor = 'var(--primary)';
-        tabSites.style.color = 'var(--text-main)';
-        
         tabUsers.classList.remove('active');
-        tabUsers.style.borderBottomColor = 'transparent';
-        tabUsers.style.color = 'var(--text-muted)';
         
         secSites.style.display = 'block';
         secUsers.style.display = 'none';

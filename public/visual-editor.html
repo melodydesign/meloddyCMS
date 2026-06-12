@@ -5,32 +5,159 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Визуальный редактор</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="stylesheet" href="/css/style.css?v=10">
-    <script src="/js/theme.js"></script>
+    <link rel="stylesheet" href="/css/style.css?v=19">
+    <script src="/js/theme.js?v=19"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; background: var(--bg-body); }
-        .toolbar { padding: 12px 24px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); z-index: 100;}
+        .toolbar { padding: 12px 24px; background: var(--bg-card); border: 1px solid var(--border); margin: 12px 12px 0 12px; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); z-index: 100;}
         iframe { width: 100%; flex: 1; border: none; background: #fff; }
         .save-indicator { font-size: 0.875rem; color: var(--text-muted); margin-right: 15px; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-        .custom-select-wrapper { display: inline-block; position: relative; }
-        .custom-select-trigger { background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.875rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-width: 120px; transition: border-color 0.2s, box-shadow 0.2s; position: relative; }
-        .custom-select-trigger:after { content: ''; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid var(--text-muted); position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-        .custom-select-trigger:hover { border-color: var(--primary); }
-        .custom-select-options { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); margin-top: 4px; max-height: 200px; overflow-y: auto; width: 100%; position: absolute; top: 100%; left: 0; z-index: 10000; display: none; }
-        .custom-select-options.show { display: block; }
-        .custom-select-option { padding: 0.5rem 0.75rem; font-size: 0.875rem; color: var(--text-main); cursor: pointer; transition: background 0.2s; }
-        .custom-select-option:hover { background: var(--bg-hover); }
-        .custom-select-option.selected { background: var(--bg-active); color: var(--primary); }
+
+        
+        .editor-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 12px;
+            gap: 12px;
+            height: calc(100vh - 77px);
+            box-sizing: border-box;
+        }
+        .sidebar-editor {
+            width: 280px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 12px;
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+        }
+        .layer-block-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            cursor: default;
+        }
+        .layer-block-item:hover {
+            border-color: var(--text-muted);
+            box-shadow: var(--shadow-sm);
+        }
+        .layer-block-item.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        }
+        
+        .layer-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--bg-hover);
+            border-bottom: 1px solid var(--border);
+            cursor: grab;
+        }
+        .layer-block-header:active {
+            cursor: grabbing;
+        }
+        
+        .layer-block-title {
+            font-weight: 600;
+            font-size: 0.825rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-main);
+            user-select: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .layer-block-title svg {
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        
+        .layer-block-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        
+        .layer-block-actions button {
+            background: none;
+            border: none;
+            padding: 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .layer-block-actions button:hover {
+            background: var(--bg-active);
+            color: var(--primary);
+        }
+        .layer-block-actions button.layer-btn-delete:hover {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+        
+        .layer-block-children {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: var(--bg-card);
+        }
+        
+        .layer-editable-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.775rem;
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .layer-editable-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-main);
+        }
+        .layer-editable-item.active {
+            background: var(--bg-active);
+            color: var(--primary);
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
     <div class="toolbar">
-        <div style="font-weight: 500; font-size: 0.9rem;"><strong style="font-weight: 700;">meloddyCMS</strong> <span style="color: var(--text-muted)">— Визуальный редактор</span></div>
+        <a href="/dashboard.html" class="topbar-logo" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <img src="/favicon.svg" alt="meloddyCMS" style="width: 24px; height: 24px;">
+            <span style="font-weight: 700; font-size: 1.1rem; color: var(--text-main); font-family: inherit;">meloddy<span class="text-gradient">CMS</span></span>
+        </a>
         
         <!-- Resolution Controls -->
         <div style="display: flex; align-items: center; gap: 16px;">
@@ -137,9 +264,9 @@
             </div>
         </div>
     </div>
-    <div class="editor-container" style="display: flex; flex: 1; overflow: hidden;">
+    <div class="editor-container">
         <!-- Left Sidebar: Layers -->
-        <div id="layersSidebar" style="width: 260px; background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px;">
+        <div id="layersSidebar" class="sidebar-editor">
             <div style="padding: 0 8px 12px 8px; font-weight: 600; border-bottom: 1px solid var(--border); font-size: 0.875rem; color: var(--text-main);">
                 <span>Слои</span>
             </div>
@@ -149,14 +276,14 @@
         </div>
         
         <!-- Center: Preview -->
-        <div id="previewContainer" style="flex: 1; display: flex; justify-content: center; background: var(--bg-body); padding: 24px; overflow: auto; transition: background 0.3s;">
-            <div id="previewWrapper" style="width: 100%; height: 100%; background: #fff; transition: all 0.3s ease; position: relative; border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--border);">
+        <div id="previewContainer" style="flex: 1; display: flex; justify-content: center; background: var(--bg-body); overflow: auto; transition: background 0.3s;">
+            <div id="previewWrapper" style="width: 100%; height: 100%; background: #fff; transition: all 0.3s ease; position: relative; border-radius: 24px; overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--border);">
                 <iframe id="preview" src="about:blank" style="width: 100%; height: 100%; border: none;"></iframe>
             </div>
         </div>
         
         <!-- Right Sidebar: Styles -->
-        <div id="stylesSidebar" style="width: 260px; background: var(--bg-card); border-left: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px;">
+        <div id="stylesSidebar" class="sidebar-editor">
             <div style="padding: 0 8px 12px 8px; font-weight: 600; border-bottom: 1px solid var(--border); font-size: 0.875rem; color: var(--text-main);">Стили</div>
             <div id="stylesContainer" style="flex: 1; overflow-y: auto; padding: 12px 4px 0 4px;">
                 <div style="color: var(--text-muted); font-size: 0.875rem;">Выберите элемент для редактирования</div>
@@ -182,7 +309,6 @@
                 <div style="display: flex; gap: 10px;">
                     <button class="btn btn-outline seo-tab active" data-tab="meta" style="padding: 4px 12px; font-size: 0.8rem;">Мета</button>
                     <button class="btn btn-outline seo-tab" data-tab="og" style="padding: 4px 12px; font-size: 0.8rem;">Social (OG)</button>
-                    <button class="btn btn-outline seo-tab" data-tab="audit" id="startAuditBtn" style="padding: 4px 12px; font-size: 0.8rem; background: var(--bg-active); color: var(--primary);">Аудит</button>
                 </div>
             </div>
 
@@ -218,12 +344,7 @@
                 </div>
             </div>
 
-            <!-- Audit Tab -->
-            <div id="seoTabAudit" class="seo-tab-content" style="display: none;">
-                <div id="auditResults" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
-                    <div style="text-align: center; color: var(--text-muted); padding: 20px;">Нажмите кнопку "Аудит" для проверки страницы</div>
-                </div>
-            </div>
+
 
             <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 20px;">
                 <button id="closeSeoModal" class="btn btn-outline">Отмена</button>
@@ -284,4 +405,4 @@
     <script src="/js/toast.js"></script>
     <script src="/js/visual-editor.js"></script>
 </body>
-</html>
+</html>

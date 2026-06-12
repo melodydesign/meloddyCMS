@@ -6,7 +6,7 @@
     <title>Вход и Регистрация - meloddyCMS</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/auth.css?v=4">
+    <link rel="stylesheet" href="/css/auth.css?v=13">
 </head>
 <body class="auth-page">
 
@@ -96,7 +96,7 @@
 
     <!-- Notifications JS dependencies -->
     <script src="/js/toast.js"></script>
-    <script src="/js/login.js"></script>
+    <script src="/js/login.js?v=13"></script>
     
     <!-- Auth Toggle Logic -->
     <script>
@@ -142,16 +142,6 @@
                 switchTab('register');
             }
         };
-
-        // Dummy register form handler since register.js might not exist yet
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if(typeof showToast === 'function') {
-                showToast('Регистрация пока в разработке. Пожалуйста, используйте вход.', 'success');
-            } else {
-                alert('Регистрация отправлена!');
-            }
-        });
     </script>
 </body>
 </html>

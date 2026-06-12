@@ -238,7 +238,6 @@ function renderClientSites(sites, container) {
         div.style.display = 'flex';
         div.style.justifyContent = 'space-between';
         div.style.alignItems = 'center';
-        div.style.marginBottom = '1rem';
         
         div.innerHTML = `
             <div style="display: flex; align-items: center; gap: 1.5rem;">

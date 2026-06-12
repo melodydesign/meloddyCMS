@@ -190,7 +190,10 @@ const generateConnectionCode = (chatId, token) => {
     }, 15 * 60 * 1000);
     
     const text = `Ваш код для подключения сайта:\n\n\`${code}\`\n\nСкопируйте его и вставьте в настройках вашего сайта (вкладка Настройки -> Уведомления в Telegram).`;
-    sendTelegramMessage(chatId, text, token);
+    const replyMarkup = {
+        inline_keyboard: [[{ text: "⬅️ Назад", callback_data: "main_menu" }]]
+    };
+    sendTelegramMessage(chatId, text, token, replyMarkup);
 };
 
 // Список сайтов
@@ -205,12 +208,16 @@ const showSitesList = async (chatId, token) => {
     }
     
     if (connectedSites.length === 0) {
-        return sendTelegramMessage(chatId, "У вас пока нет подключенных сайтов. Нажмите «➕ Подключить сайт», чтобы начать.", token);
+        const replyMarkup = {
+            inline_keyboard: [[{ text: "⬅️ Назад", callback_data: "main_menu" }]]
+        };
+        return sendTelegramMessage(chatId, "У вас пока нет подключенных сайтов. Нажмите «➕ Подключить сайт», чтобы начать.", token, replyMarkup);
     }
     
     const inlineKeyboard = connectedSites.map(site => {
         return [{ text: site.name, callback_data: `site_${site.id}` }];
     });
+    inlineKeyboard.push([{ text: "⬅️ Назад", callback_data: "main_menu" }]);
     
     sendTelegramMessage(chatId, "Ваши подключенные сайты:", token, { inline_keyboard: inlineKeyboard });
 };
@@ -224,8 +231,10 @@ const showSiteMenu = async (chatId, siteId, token) => {
     
     const text = `Управление сайтом *${site.displayName || siteId}*`;
     const inlineKeyboard = [
+        [{ text: "📊 Посмотреть статистику сайта", callback_data: `stats_${siteId}` }],
         [{ text: "📩 Посмотреть последние заявки", callback_data: `leads_${siteId}` }],
-        [{ text: "❌ Отключить сайт", callback_data: `unlink_${siteId}` }]
+        [{ text: "❌ Отключить сайт", callback_data: `unlink_${siteId}` }],
+        [{ text: "⬅️ Назад в список", callback_data: "back_to_sites" }]
     ];
     
     sendTelegramMessage(chatId, text, token, { inline_keyboard: inlineKeyboard });
@@ -253,7 +262,10 @@ const showLeads = async (chatId, siteId, token, callbackQueryId, offset = 0) => 
     const leads = siteStats.forms || [];
     
     if (leads.length === 0) {
-        sendTelegramMessage(chatId, `На сайте *${siteName}* пока нет заявок.`, token);
+        const replyMarkup = {
+            inline_keyboard: [[{ text: "⬅️ Назад в меню сайта", callback_data: `site_${siteId}` }]]
+        };
+        sendTelegramMessage(chatId, `На сайте *${siteName}* пока нет заявок.`, token, replyMarkup);
     } else {
         const sortedLeads = [...leads].reverse(); // новые сверху
         const currentLeads = sortedLeads.slice(offset, offset + 10);
@@ -273,11 +285,58 @@ const showLeads = async (chatId, siteId, token, callbackQueryId, offset = 0) => 
         if (offset + 10 < sortedLeads.length) {
             replyMarkup.inline_keyboard.push([{ text: "⬇️ Показать еще", callback_data: `leads_${siteId}_${offset + 10}` }]);
         }
+        replyMarkup.inline_keyboard.push([{ text: "⬅️ Назад в меню сайта", callback_data: `site_${siteId}` }]);
         
-        sendTelegramMessage(chatId, text, token, replyMarkup.inline_keyboard.length > 0 ? replyMarkup : null);
+        sendTelegramMessage(chatId, text, token, replyMarkup);
     }
     
     if (callbackQueryId) sendTelegramAction(callbackQueryId, "Заявки загружены", token);
+};
+
+const showSiteStats = async (chatId, siteId, token, callbackQueryId) => {
+    const fs = require('fs');
+    const path = require('path');
+    const siteSettingsAll = await readJsonObj(SITE_SETTINGS_FILE);
+    const analyticsAll = await readJsonObj(ANALYTICS_FILE);
+    
+    const site = siteSettingsAll[siteId];
+    if (!site || site.telegramChatId !== chatId) {
+        return sendTelegramMessage(chatId, "Сайт не найден или отключен.", token);
+    }
+    
+    const stats = analyticsAll[siteId] || { views: [], clicks: [], forms: [] };
+    
+    let orders = [];
+    const ordersFilePath = path.join(__dirname, '..', '..', 'data', 'orders', `${siteId}.json`);
+    try {
+        if (fs.existsSync(ordersFilePath)) {
+            orders = JSON.parse(fs.readFileSync(ordersFilePath, 'utf-8'));
+        }
+    } catch (e) {
+        console.error('Failed to read orders for stats', e);
+    }
+    
+    const totalOrdersCount = orders.length;
+    const completedOrders = orders.filter(o => o.status === 'completed');
+    const revenue = completedOrders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+    
+    const platformConfig = await getPlatformConfig();
+    const text = `📊 *Аналитика сайта: ${site.displayName || siteId}*\n\n` +
+                 `👁 Посещения (просмотры): ${stats.views.length}\n` +
+                 `🖱 Клики по элементам: ${stats.clicks.length}\n` +
+                 `📩 Заявки с форм: ${stats.forms.length}\n\n` +
+                 `🛒 *Заказы магазина:*\n` +
+                 `• Всего заказов: ${totalOrdersCount}\n` +
+                 `• Выполнено заказов: ${completedOrders.length}\n` +
+                 `• Выручка (выполненные): ${revenue.toLocaleString('ru-RU')} ₽\n\n` +
+                 `🌐 [Открыть панель управления](${platformConfig.platformUrl})`;
+                 
+    const inlineKeyboard = [
+        [{ text: "⬅️ Назад в меню сайта", callback_data: `site_${siteId}` }]
+    ];
+    
+    sendTelegramMessage(chatId, text, token, { inline_keyboard: inlineKeyboard });
+    if (callbackQueryId) sendTelegramAction(callbackQueryId, "", token);
 };
 
 const handleCallbackQuery = (query, token) => {
@@ -285,7 +344,23 @@ const handleCallbackQuery = (query, token) => {
     const chatId = query.message.chat.id;
     const queryId = query.id;
     
-    if (data.startsWith('site_')) {
+    if (data === 'main_menu') {
+        const replyMarkup = {
+            keyboard: [
+                [{ text: '➕ Подключить сайт' }],
+                [{ text: '📋 Список сайтов' }]
+            ],
+            resize_keyboard: true
+        };
+        sendTelegramMessage(chatId, "Выберите действие в меню:", token, replyMarkup);
+        sendTelegramAction(queryId, "", token);
+    } else if (data === 'back_to_sites') {
+        showSitesList(chatId, token);
+        sendTelegramAction(queryId, "", token);
+    } else if (data.startsWith('stats_')) {
+        const siteId = data.substring(6);
+        showSiteStats(chatId, siteId, token, queryId);
+    } else if (data.startsWith('site_')) {
         const siteId = data.substring(5);
         showSiteMenu(chatId, siteId, token);
         sendTelegramAction(queryId, "", token);
