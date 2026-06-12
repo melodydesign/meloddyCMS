@@ -13,4 +13,7 @@ scratch/
 check_log.py
 scratch_test.js
 data/products/
-
+deploy.py
+deploy_changes.ps1
+plink.exe
+pscp.exe
